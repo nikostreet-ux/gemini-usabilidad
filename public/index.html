@@ -179,8 +179,22 @@
     .ins-two-col{grid-template-columns:1fr}
     .main,.insights-main{padding:16px}
     .header,.filters-bar{padding:12px 16px}
-    .app-container { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; flex-shrink: unset; }
+    .app-container { flex-direction: column; overflow: hidden; }
+    .sidebar { width: 100%; height: auto; flex-shrink: 0; flex-direction: row; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 60; }
+    .sidebar-logo { padding: 0; border: none; margin-bottom: 0; display: flex; align-items: center; }
+    .sidebar-title, .sidebar-subtitle { display: none; }
+    .brand-box { margin-bottom: 0; padding: 6px 10px; }
+    .brand-text { font-size: 14px; gap: 4px; }
+    .sidebar-section { padding: 0; display: flex; align-items: center; gap: 4px; margin-top: 0 !important; }
+    .sidebar-label { display: none; }
+    .sidebar-list { display: flex; flex-direction: row; gap: 4px; }
+    .sidebar-item { padding: 6px 8px; font-size: 11px; border-radius: 6px; gap: 4px; }
+    .sidebar-item .status-dot { width: 6px; height: 6px; }
+    .sidebar-item .tab-badge { display: none; }
+    .sidebar-item.active::before { display: none; }
+    .sidebar-item.active { background: rgba(255,255,255,0.1); }
+    .sidebar-bottom { display: none; }
+    .content-wrapper { flex: 1; height: auto; overflow-y: auto; }
   }
 </style>
 </head>
@@ -216,6 +230,9 @@
       <ul class="sidebar-list">
         <li class="sidebar-item" onclick="switchTab('insights', this)">
           <span class="status-dot amber"></span> Insights <span class="tab-badge" style="margin-left:auto; z-index:2">7</span>
+        </li>
+        <li class="sidebar-item" onclick="switchTab('report', this)">
+          <span class="status-dot blue"></span> Reporte
         </li>
       </ul>
     </div>
@@ -460,6 +477,60 @@
   </div>
 </div>
 </div><!-- end tab-insights -->
+
+<!-- TAB: REPORT -->
+<div id="tab-report" class="tab-pane">
+  <div class="insights-main">
+    <div class="ins-card full">
+      <div class="ins-card-title" style="font-size:20px; font-weight:800; margin-bottom:12px;">📊 Análisis de Correlaciones y Oportunidades</div>
+      <div style="font-size:14px; color:var(--text); line-height:1.6;">
+        <p>Tras cruzar las dimensiones de <strong>Antigüedad</strong>, <strong>Familia de Cargo</strong> y la <strong>Gerencia</strong> más problemática, se descubrieron correlaciones sumamente interesantes que desmitifican algunos números generales.</p>
+        
+        <div class="alert-box" style="background:#e0f2fe; border-color:#bae6fd; margin: 20px 0;">
+          <div class="alert-icon">💡</div>
+          <div class="alert-text" style="color:#0369a1; font-size:14px;"><strong>El gran descubrimiento:</strong> La adopción de Gemini está profundamente marcada por la jerarquía (a mayor cargo, mayor uso) y por el tiempo en la empresa (a menor antigüedad, más experimentación con IA).</div>
+        </div>
+
+        <h3 style="margin-top:32px; font-size:16px;">1. La Curva de la Antigüedad (Generación de Talento)</h3>
+        <p>Existe una correlación directa y predecible entre los "años de servicio" de un colaborador y su propensión a interactuar con la plataforma.</p>
+        <ul style="margin:12px 0 24px 24px;">
+          <li><strong>< 1 año en la empresa:</strong> <strong>72%</strong> de adopción.</li>
+          <li><strong>1 a 3 años:</strong> <strong>62%</strong>.</li>
+          <li><strong>5 a 10 años:</strong> <strong>56%</strong>.</li>
+          <li><strong>> 10 años:</strong> <strong>50%</strong>.</li>
+        </ul>
+        <strong style="color:var(--accent1);">💡 Iniciativa propuesta:</strong>
+        <p style="margin-top:6px;">Las personas con más de 10 años en Mallplaza dominan los procesos actuales y la cultura corporativa, pero están adoptando Gemini más lento. Dado que el talento nuevo (<1 año) es veloz en utilizarlo, propongo lanzar un piloto de <strong>"Mentoría Inversa en IA"</strong>, donde los jóvenes actúen como "duplas" de los colaboradores de mayor antigüedad para enseñarles prompts.</p>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin:32px 0;">
+
+        <h3 style="font-size:16px;">2. El "Falso Problema" de Operaciones Regional</h3>
+        <p>La <strong>Gerencia Operaciones Regional</strong> figura como una de las de peor rendimiento absoluto (<strong>39%</strong>) a pesar de ser la más grande (262 personas).</p>
+        <p>Sin embargo, al hacer un cruce estadístico interno por <strong>Familia de Cargo</strong>, el panorama es el opuesto en los mandos altos:</p>
+        <ul style="margin:12px 0 24px 24px;">
+          <li><strong>Middle Management:</strong> 80% activos.</li>
+          <li><strong>Junior Management:</strong> 67% activos.</li>
+          <li><strong>Especialistas / Profesionales:</strong> Apenas 33% activos (Son 172 personas).</li>
+          <li><strong>Técnico / Administrativo:</strong> Menos del 13%.</li>
+        </ul>
+        <strong style="color:var(--accent1);">💡 Iniciativa propuesta:</strong>
+        <p style="margin-top:6px;">Los líderes de Operaciones Regional <em>sí</em> la usan. <strong>El problema es el cortocircuito en la adopción en cascada.</strong><br>Recomiendo incentivar a ese 80% del <em>Middle Management</em> para que <strong>subexpongan a sus especialistas a Gemini</strong> (exigiendo que borradores o resúmenes se generen en Gemini). Si el líder lo modela, la masa de Especialistas subirá su 33%.</p>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin:32px 0;">
+
+        <h3 style="font-size:16px;">3. La brecha de los "Especialistas" Transversales</h3>
+        <p>A nivel general, los "Especialistas" deberían ser la gran fuerza intelectual de IA. Sin embargo, hay realidades distintas:</p>
+        <ul style="margin:12px 0 24px 24px;">
+          <li><strong>Esp. Profesional Digital:</strong> <strong>98%</strong> (Adopción casi perfecta).</li>
+          <li><strong>Esp. Profesional (Tradicional):</strong> <strong>53%</strong> (Brecha de 45 puntos).</li>
+        </ul>
+        <strong style="color:var(--accent1);">💡 Iniciativa propuesta:</strong>
+        <p style="margin-top:6px;">Dada la efectividad digital, propongo crear un <strong>Repositorio Colaborativo de Prompts Top</strong>, recogiendo qué hacen en sus prompts ese 98% digital para compartir ese método hacia el 53% tradicional.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- end tab-report -->
 
 <div class="footer">Dashboard Gemini Usabilidad · Mallplaza · Datos sincronizados desde SharePoint via Power Automate</div>
 
