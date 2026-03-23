@@ -385,9 +385,25 @@ async function fetchData() {
     }
 
     document.getElementById('noDataMsg').style.display = 'none';
-    allData = json.rows;
+
+    // Helper: parse date to standard format (YYYY-MM-DDT00:00) so sorting/comparisons just work everywhere
+    allData = json.rows.map(r => {
+      let l = r.last_login;
+      if (typeof l === 'string') {
+        if (l.includes('T')) {
+            // Ya es ISO 8601
+            l = l.split('T')[0];
+        } else if (/^\d{2}\/\d{2}\/\d{4}/.test(l)) {
+          // Si viene como DD/MM/YYYY...
+          const parts = l.split(/[\/\s]/);
+          l = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+      return { ...r, _parsed_login: l || null };
+    });
 
     if (json.updatedAt) {
+
       const d = new Date(json.updatedAt);
       document.getElementById('syncInfo').textContent = '⟳ ' + d.toLocaleString('es-CL', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
       // Actualizar período en header-sub
@@ -461,8 +477,8 @@ function sortTable(key) {
 }
 function doSort() {
   filtered.sort((a, b) => {
-    const va = (a[sortKey] || '').toString().toLowerCase();
-    const vb = (b[sortKey] || '').toString().toLowerCase();
+    const va = ((sortKey === 'last_login' ? a._parsed_login : a[sortKey]) || '').toString().toLowerCase();
+    const vb = ((sortKey === 'last_login' ? b._parsed_login : b[sortKey]) || '').toString().toLowerCase();
     return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
   });
 }
@@ -480,7 +496,7 @@ function updateKPIs(data) {
   const active    = data.filter(r => r.status === 'active').length;
   const suspended = data.filter(r => r.status === 'suspended').length;
   const cutoff7   = new Date(); cutoff7.setDate(cutoff7.getDate() - 7);
-  const recent    = data.filter(r => r.last_login && new Date(r.last_login) >= cutoff7).length;
+  const recent    = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= cutoff7).length;
   const paises    = [...new Set(data.map(r => r['Pais']).filter(v => v && v !== 'Sin datos'))];
 
   document.getElementById('kpiTotal').textContent     = total;
@@ -533,8 +549,8 @@ function buildCharts(data) {
   // Login timeline
   const loginMap = {};
   data.forEach(r => {
-    if (!r.last_login) return;
-    const d = r.last_login.slice(0,10);
+    if (!r._parsed_login) return;
+    const d = r._parsed_login.slice(0,10);
     if (d === '1970-01-01') return;
     loginMap[d] = (loginMap[d]||0)+1;
   });
@@ -605,7 +621,19 @@ function renderTable(data) {
     const flag = flagMap[r['Pais']] || '🌐';
     const st   = r.status === 'active' ? 'active' : 'suspended';
     const stTxt= r.status === 'active' ? 'Activo' : 'Suspendido';
-    const login= r.last_login && r.last_login !== '1970-01-01' ? r.last_login : '—';
+    // Logica de formateo de fecha (de ISO 8601 a DD/MM/YYYY)
+    const is1970 = r._parsed_login && r._parsed_login.startsWith('1970-01-01');
+    let login = '—';
+    if (r.last_login && !is1970) {
+      if (r.last_login.includes('T')) {
+        // ISO format from PA: 2026-03-19T00:00:00.000Z
+        const parts = r.last_login.split('T')[0].split('-');
+        login = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      } else {
+        login = r.last_login;
+      }
+    }
+    
     return `<tr>
       <td>${r['Nombre'] || '—'}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.email || '—'}</td>
