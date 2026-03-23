@@ -231,10 +231,18 @@
           <div class="chart-title">Usuarios por Área</div>
           <div class="chart-subtitle" style="margin-bottom:0">Activos vs. Inactivos (Últimos 30 Días)</div>
         </div>
-        <div style="display:flex; background:var(--surface2); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-          <button class="chart-tab-btn active" onclick="switchChartTab('corp', this)">Ger. Corporativa</button>
-          <button class="chart-tab-btn" onclick="switchChartTab('prin', this)">Ger. Principal</button>
-          <button class="chart-tab-btn" onclick="switchChartTab('subn3', this)">Subgerencia N3</button>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <select id="sortChartArea" class="filter-select" style="font-size:11px; padding:6px 10px; min-width:140px; border-radius:6px; height:30px;" onchange="applyFilters()">
+            <option value="default">Orden predeterminado</option>
+            <option value="activos_desc">Más Activos primero</option>
+            <option value="inactivos_desc">Más Inactivos primero</option>
+            <option value="total_desc">Mayor Volumen primero</option>
+          </select>
+          <div style="display:flex; background:var(--surface2); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+            <button class="chart-tab-btn active" onclick="switchChartTab('corp', this)">Ger. Corporativa</button>
+            <button class="chart-tab-btn" onclick="switchChartTab('prin', this)">Ger. Principal</button>
+            <button class="chart-tab-btn" onclick="switchChartTab('subn3', this)">Subgerencia N3</button>
+          </div>
         </div>
       </div>
       
@@ -611,6 +619,7 @@ function resetFilters() {
   document.getElementById('filterGerenciaCorpSummary').innerHTML = '🏢 Ger. Corp: Todas';
   document.getElementById('filterGerenciaSummary').innerHTML = '🏢 Ger. Principal: Todas';
   document.getElementById('filterGerenciaN3Summary').innerHTML = '🏢 Sub N3: Todas';
+  if(document.getElementById('sortChartArea')) document.getElementById('sortChartArea').value = 'default';
   applyFilters();
 }
 
@@ -658,7 +667,7 @@ function updateKPIs(data) {
 }
 
 // Helper para calcular Activos (Ultimos 30 dias) vs Total para los graficos
-function buildComparatives(data, groupByField) {
+function buildComparatives(data, groupByField, sortMode = 'total_desc') {
   const cutoff30  = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
   const map = {};
   
@@ -674,10 +683,23 @@ function buildComparatives(data, groupByField) {
     }
   });
   
-  // Ordenar por cantidad total descendente, dejando 'Sin datos' al final
   return Object.entries(map).sort((a,b) => {
     if (a[0] === 'Sin datos') return 1;
     if (b[0] === 'Sin datos') return -1;
+    
+    const actA = a[1].active30d;
+    const actB = b[1].active30d;
+    const inA = a[1].total - actA;
+    const inB = b[1].total - actB;
+
+    if (sortMode === 'activos_desc') {
+        if (actA !== actB) return actB - actA;
+        return b[1].total - a[1].total; // tiebreaker
+    }
+    if (sortMode === 'inactivos_desc') {
+        if (inA !== inB) return inB - inA;
+        return b[1].total - a[1].total;
+    }
     return b[1].total - a[1].total;
   });
 }
@@ -689,8 +711,10 @@ function buildCharts(data) {
   Object.values(charts).forEach(c => c && c.destroy());
   charts = {};
 
+  const sortMode = document.getElementById('sortChartArea') ? document.getElementById('sortChartArea').value : 'default';
+
   // 1. Gerencia Corporativa
-  const corpRaw = buildComparatives(data, 'Gerencia Corporativa');
+  const corpRaw = buildComparatives(data, 'Gerencia Corporativa', sortMode === 'default' ? 'total_desc' : sortMode);
   const corpSorted = corpRaw.filter(e => e[0] !== 'Sin datos');
   const corpSd = corpRaw.find(e => e[0] === 'Sin datos');
   if (corpSd) corpSorted.push(corpSd);
@@ -699,41 +723,45 @@ function buildCharts(data) {
   charts.corp = makeComparativeBar('chartCorp', corpSorted.map(e=>e[0].replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,35)), corpSorted.map(e=>e[1].total), corpSorted.map(e=>e[1].active30d), true);
 
   // 2. Gerencia Principal
-  const GERENCIAS_ORDER = [
-    "Gerencia Operaciones Regional",
-    "Gerencia de Administracion",
-    "Gerencia de Estrategia y Performance",
-    "Gerencia de Marketing & Experiencia",
-    "Gerencia de Proyectos y Construccion",
-    "Gerencia Regional de Tecnologia",
-    "Gerencia de Finanzas y Relaciones con Inversionista",
-    "Subgerencia Auditoria Interna",
-    "Direccion Digital Product y Nuevos Negocios",
-    "Direccion de Compensaciones y Diseño Organizacional",
-    "Gerencia Expansion y Brownfield",
-    "Gerencia de Expansion Brownfield y Grandes Superficies",
-    "Gerencia Comercial Chile",
-    "Gerencia Legal Chile y Peru",
-    "Gerencia de Comunicaciones y Sostenibilidad",
-    "Gerencia Comercial Colombia",
-    "Direccion Riesgo y Cumplimiento",
-    "Subgerencia Cultura y Experiencia",
-    "Subgerencia Cultura y HRBP",
-    "Subgerencia Auditoria de Proyectos y Operaciones",
-    "Gerencia Comercial Peru",
-    "Subgerencia Planificacion Comercial",
-    "Direccion de Talento",
-    "Direccion Omnichannel Fulfillment Solutions",
-    "Direccion Omnichannel & Digital Sales",
-    "Gerencia Divisional Chile y Colombia",
-    "Subgerencia Legal Colombia",
-    "Gerencia de Desarrollo y Portafolio",
-    "Gerencia de Desarrollo"
-  ];
-  const prinRaw = buildComparatives(data, 'Gerencia Principal');
-  const prinSorted = [];
-  GERENCIAS_ORDER.forEach(k => { const f = prinRaw.find(e=>e[0]===k); if(f) prinSorted.push(f); });
-  prinRaw.forEach(e => { if(!GERENCIAS_ORDER.includes(e[0]) && e[0] !== 'Sin datos') prinSorted.push(e); });
+  const prinRaw = buildComparatives(data, 'Gerencia Principal', sortMode === 'default' ? 'total_desc' : sortMode);
+  let prinSorted = [];
+  if (sortMode === 'default') {
+    const GERENCIAS_ORDER = [
+      "Gerencia Operaciones Regional",
+      "Gerencia de Administracion",
+      "Gerencia de Estrategia y Performance",
+      "Gerencia de Marketing & Experiencia",
+      "Gerencia de Proyectos y Construccion",
+      "Gerencia Regional de Tecnologia",
+      "Gerencia de Finanzas y Relaciones con Inversionista",
+      "Subgerencia Auditoria Interna",
+      "Direccion Digital Product y Nuevos Negocios",
+      "Direccion de Compensaciones y Diseño Organizacional",
+      "Gerencia Expansion y Brownfield",
+      "Gerencia de Expansion Brownfield y Grandes Superficies",
+      "Gerencia Comercial Chile",
+      "Gerencia Legal Chile y Peru",
+      "Gerencia de Comunicaciones y Sostenibilidad",
+      "Gerencia Comercial Colombia",
+      "Direccion Riesgo y Cumplimiento",
+      "Subgerencia Cultura y Experiencia",
+      "Subgerencia Cultura y HRBP",
+      "Subgerencia Auditoria de Proyectos y Operaciones",
+      "Gerencia Comercial Peru",
+      "Subgerencia Planificacion Comercial",
+      "Direccion de Talento",
+      "Direccion Omnichannel Fulfillment Solutions",
+      "Direccion Omnichannel & Digital Sales",
+      "Gerencia Divisional Chile y Colombia",
+      "Subgerencia Legal Colombia",
+      "Gerencia de Desarrollo y Portafolio",
+      "Gerencia de Desarrollo"
+    ];
+    GERENCIAS_ORDER.forEach(k => { const f = prinRaw.find(e=>e[0]===k); if(f) prinSorted.push(f); });
+    prinRaw.forEach(e => { if(!GERENCIAS_ORDER.includes(e[0]) && e[0] !== 'Sin datos') prinSorted.push(e); });
+  } else {
+    prinSorted = prinRaw.filter(e => e[0] !== 'Sin datos');
+  }
   const prinSd = prinRaw.find(e => e[0] === 'Sin datos');
   if (prinSd) prinSorted.push(prinSd);
 
@@ -741,7 +769,7 @@ function buildCharts(data) {
   charts.prin = makeComparativeBar('chartPrin', prinSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), prinSorted.map(e=>e[1].total), prinSorted.map(e=>e[1].active30d), true);
 
   // 3. Subgerencia N3
-  const subn3Raw = buildComparatives(data, 'Gerencia / Subgerencia N3');
+  const subn3Raw = buildComparatives(data, 'Gerencia / Subgerencia N3', sortMode === 'default' ? 'total_desc' : sortMode);
   const subn3Sorted = subn3Raw.filter(e => e[0] !== 'Sin datos');
   const subn3Sd = subn3Raw.find(e => e[0] === 'Sin datos');
   if (subn3Sd) subn3Sorted.push(subn3Sd);
