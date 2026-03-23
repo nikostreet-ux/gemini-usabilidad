@@ -694,8 +694,11 @@ function buildCharts(data) {
   const sdGer = gerRaw.find(e => e[0] === 'Sin datos');
   if (sdGer) gerSorted.push(sdGer);
 
+  const gerContainer = document.getElementById('chartGerencia').parentElement;
+  gerContainer.style.height = Math.max(300, gerSorted.length * 28) + 'px';
+
   charts.gerencia = makeComparativeBar('chartGerencia', 
-    gerSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), 
+    gerSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)),
     gerSorted.map(e=>e[1].total), 
     gerSorted.map(e=>e[1].active30d),
     true
