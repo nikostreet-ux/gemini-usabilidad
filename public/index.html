@@ -199,19 +199,39 @@
 
   <!-- CHARTS ROW 1 -->
   <div class="charts-grid" style="grid-template-columns:1fr">
-    <div class="chart-card"><div class="chart-title">Usuarios por Gerencia Principal</div><div class="chart-subtitle">Total Invitados vs. Activos Últimos 30 Días</div><canvas id="chartGerencia" height="360"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-title">Usuarios por Gerencia Principal</div>
+      <div class="chart-subtitle">Activos vs. Inactivos (Últimos 30 Días)</div>
+      <div style="position:relative;height:360px;width:100%"><canvas id="chartGerencia"></canvas></div>
+    </div>
   </div>
 
   <!-- CHARTS ROW 2 -->
   <div class="charts-grid" style="grid-template-columns:1fr 1fr">
-    <div class="chart-card"><div class="chart-title">Top Familias de Cargo</div><div class="chart-subtitle">Invitados vs. Activos Últimos 30 Días</div><canvas id="chartFamilia" height="280"></canvas></div>
-    <div class="chart-card"><div class="chart-title">Distribución por Antigüedad</div><div class="chart-subtitle">Invitados vs. Activos Últimos 30 Días</div><canvas id="chartAntiguedad" height="280"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-title">Top Familias de Cargo</div>
+      <div class="chart-subtitle">Activos vs. Inactivos</div>
+      <div style="position:relative;height:320px;width:100%"><canvas id="chartFamilia"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Distribución por Antigüedad</div>
+      <div class="chart-subtitle">Activos vs. Inactivos</div>
+      <div style="position:relative;height:320px;width:100%"><canvas id="chartAntiguedad"></canvas></div>
+    </div>
   </div>
 
   <!-- CHARTS ROW 3 -->
   <div class="charts-grid" style="grid-template-columns:1fr 1fr">
-    <div class="chart-card"><div class="chart-title">Usuarios por País</div><div class="chart-subtitle">Invitados vs. Activos Últimos 30 Días</div><canvas id="chartPais" height="260"></canvas></div>
-    <div class="chart-card"><div class="chart-title">Actividad de Login (últimos 30 días)</div><div class="chart-subtitle">Cantidad de usuarios únicos por fecha de acceso</div><canvas id="chartLogin" height="260"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-title">Usuarios por País</div>
+      <div class="chart-subtitle">Activos vs. Inactivos</div>
+      <div style="position:relative;height:260px;width:100%"><canvas id="chartPais"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Actividad de Login (últimos 30 días)</div>
+      <div class="chart-subtitle">Cantidad de usuarios únicos por fecha de acceso</div>
+      <div style="position:relative;height:260px;width:100%"><canvas id="chartLogin"></canvas></div>
+    </div>
   </div>
 
   <!-- TABLE -->
@@ -598,13 +618,23 @@ function buildCharts(data) {
 function makeComparativeBar(id, labels, totalVals, activeVals, horizontal) {
   const ctx = document.getElementById(id);
   if (!ctx) return null;
+  
+  const pctActive = [];
+  const pctInactive = [];
+  totalVals.forEach((t, i) => {
+    const act = activeVals[i];
+    const inact = t - act;
+    pctActive.push(t > 0 ? (act / t * 100).toFixed(1) : 0);
+    pctInactive.push(t > 0 ? (inact / t * 100).toFixed(1) : 0);
+  });
+
   return new Chart(ctx, {
     type: 'bar',
     data: { 
       labels, 
       datasets: [
-        { label: 'Total Invitados', data: totalVals, backgroundColor: '#cbd5e1', borderWidth: 0, borderRadius: 3 },
-        { label: 'Activos (30 días)', data: activeVals, backgroundColor: '#0284c7', borderWidth: 0, borderRadius: 3 }
+        { label: 'Activos', data: pctActive, backgroundColor: '#0284c7', borderWidth: 0, barPercentage: 0.7 },
+        { label: 'Inactivos', data: pctInactive, backgroundColor: '#f97316', borderWidth: 0, barPercentage: 0.7 }
       ] 
     },
     options: {
@@ -612,11 +642,41 @@ function makeComparativeBar(id, labels, totalVals, activeVals, horizontal) {
       responsive: true, 
       maintainAspectRatio: false,
       plugins: { 
-        legend: { position: 'top', labels: { font: { size: 11 }, color: '#64748b', usePointStyle: true, boxWidth: 8 } }
+        legend: { position: 'top', labels: { font: { size: 11 }, color: '#64748b', usePointStyle: true, boxWidth: 8 } },
+        tooltip: {
+          callbacks: {
+            title: (items) => items[0].label,
+            label: (ctx) => {
+              const idx = ctx.dataIndex;
+              const isAct = ctx.datasetIndex === 0;
+              const abs = isAct ? activeVals[idx] : (totalVals[idx] - activeVals[idx]);
+              return `${ctx.dataset.label}: ${ctx.raw}% (${abs} usuarios)`;
+            },
+            footer: (items) => 'Total Invitados: ' + totalVals[items[0].dataIndex]
+          }
+        }
       },
       scales: {
-        x: { grid: { color: horizontal ? '#e2e8f0' : 'transparent' }, ticks: { color: '#64748b', font: { size: 11 } } },
-        y: { grid: { color: !horizontal ? '#e2e8f0' : 'transparent' }, ticks: { color: '#64748b', font: { size: 10 } } }
+        x: { 
+          stacked: true,
+          max: horizontal ? 100 : undefined,
+          grid: { color: horizontal ? '#e2e8f0' : 'transparent' }, 
+          ticks: { 
+            color: '#64748b', 
+            font: { size: 10 },
+            callback: function(v) { return horizontal ? v + '%' : this.getLabelForValue(v); }
+          } 
+        },
+        y: { 
+          stacked: true,
+          max: !horizontal ? 100 : undefined,
+          grid: { color: !horizontal ? '#e2e8f0' : 'transparent' }, 
+          ticks: { 
+            color: '#64748b', 
+            font: { size: 10 },
+            callback: function(v) { return !horizontal ? v + '%' : this.getLabelForValue(v); }
+          } 
+        }
       }
     }
   });
