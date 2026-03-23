@@ -192,8 +192,13 @@
   <span class="filter-label">Filtros</span>
   <select class="filter-select" id="filterPais"><option value="">🌎 Todos los países</option></select>
   
+  <details class="multi-select" id="filterGerenciaCorpWrap">
+    <summary id="filterGerenciaCorpSummary">🏢 Ger. Corp: Todas</summary>
+    <div class="multi-select-dropdown" id="filterGerenciaCorp"></div>
+  </details>
+
   <details class="multi-select" id="filterGerenciaWrap">
-    <summary id="filterGerenciaSummary">🏢 Gerencias: Todas</summary>
+    <summary id="filterGerenciaSummary">🏢 Ger. Principal: Todas</summary>
     <div class="multi-select-dropdown" id="filterGerencia"></div>
   </details>
 
@@ -218,7 +223,7 @@
   <!-- CHARTS ROW 1 -->
   <div class="charts-grid" style="grid-template-columns:1fr">
     <div class="chart-card">
-      <div class="chart-title">Usuarios por Gerencia Principal</div>
+      <div class="chart-title">Usuarios por Gerencia Corporativa</div>
       <div class="chart-subtitle">Activos vs. Inactivos (Últimos 30 Días)</div>
       <div style="position:relative;height:360px;width:100%"><canvas id="chartGerencia"></canvas></div>
     </div>
@@ -268,7 +273,8 @@
             <th class="sortable" onclick="sortTable('Nombre')">Nombre ↕</th>
             <th class="sortable" onclick="sortTable('email')">Email ↕</th>
             <th>País</th>
-            <th>Gerencia Principal</th>
+            <th>Ger. Corporativa</th>
+            <th>Ger. Principal</th>
             <th>Subgerencia N3</th>
             <th class="sortable" onclick="sortTable('last_login')">Último Login ↕</th>
             <th>Familia Cargo</th>
@@ -464,6 +470,7 @@ async function fetchData() {
 // ─── FILTERS ─────────────────────────────────────────────────────────────────
 function populateFilters(data) {
   const paises   = [...new Set(data.map(r => r['Pais']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const gerenciasCorp = [...new Set(data.map(r => r['Gerencia Corporativa']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
   const gerencias = [
     "Gerencia Operaciones Regional",
     "Gerencia de Administracion",
@@ -530,7 +537,8 @@ function populateFilters(data) {
   };
 
   fill('filterPais', paises);
-  fillMulti('filterGerencia', 'filterGerenciaSummary', '🏢 Gerencias', gerencias);
+  fillMulti('filterGerenciaCorp', 'filterGerenciaCorpSummary', '🏢 Ger. Corp', gerenciasCorp);
+  fillMulti('filterGerencia', 'filterGerenciaSummary', '🏢 Ger. Principal', gerencias);
   fillMulti('filterGerenciaN3', 'filterGerenciaN3Summary', '🏢 Sub N3', subN3);
   fill('filterFamilia', familias);
 
@@ -545,6 +553,7 @@ document.addEventListener('click', e => {
 
 function applyFilters() {
   const pais     = document.getElementById('filterPais').value;
+  const gerenciasCorpSel = Array.from(document.querySelectorAll('#filterGerenciaCorp input:checked')).map(cb => cb.value);
   const gerenciasSel = Array.from(document.querySelectorAll('#filterGerencia input:checked')).map(cb => cb.value);
   const subn3Sel = Array.from(document.querySelectorAll('#filterGerenciaN3 input:checked')).map(cb => cb.value);
   const familia  = document.getElementById('filterFamilia').value;
@@ -552,6 +561,7 @@ function applyFilters() {
 
   filtered = allData.filter(r => {
     if (pais     && r['Pais'] !== pais) return false;
+    if (gerenciasCorpSel.length > 0 && !gerenciasCorpSel.includes(r['Gerencia Corporativa'])) return false;
     if (gerenciasSel.length > 0 && !gerenciasSel.includes(r['Gerencia Principal'])) return false;
     if (subn3Sel.length > 0 && !subn3Sel.includes(r['Gerencia / Subgerencia N3'])) return false;
     if (familia  && r['Familia de cargo'] !== familia) return false;
@@ -568,7 +578,8 @@ function resetFilters() {
   ['filterPais','filterFamilia'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.multi-select input[type="checkbox"]').forEach(cb => cb.checked = false);
   document.getElementById('tableSearch').value = '';
-  document.getElementById('filterGerenciaSummary').innerHTML = '🏢 Gerencias: Todas';
+  document.getElementById('filterGerenciaCorpSummary').innerHTML = '🏢 Ger. Corp: Todas';
+  document.getElementById('filterGerenciaSummary').innerHTML = '🏢 Ger. Principal: Todas';
   document.getElementById('filterGerenciaN3Summary').innerHTML = '🏢 Sub N3: Todas';
   applyFilters();
 }
@@ -648,48 +659,14 @@ function buildCharts(data) {
   Object.values(charts).forEach(c => c && c.destroy());
   charts = {};
 
-  // Gerencia
-  const GERENCIAS_ORDER = [
-    "Gerencia Operaciones Regional",
-    "Gerencia de Administracion",
-    "Gerencia de Estrategia y Performance",
-    "Gerencia de Marketing & Experiencia",
-    "Gerencia de Proyectos y Construccion",
-    "Gerencia Regional de Tecnologia",
-    "Gerencia de Finanzas y Relaciones con Inversionista",
-    "Subgerencia Auditoria Interna",
-    "Direccion Digital Product y Nuevos Negocios",
-    "Direccion de Compensaciones y Diseño Organizacional",
-    "Gerencia Expansion y Brownfield",
-    "Gerencia de Expansion Brownfield y Grandes Superficies",
-    "Gerencia Comercial Chile",
-    "Gerencia Legal Chile y Peru",
-    "Gerencia de Comunicaciones y Sostenibilidad",
-    "Gerencia Comercial Colombia",
-    "Direccion Riesgo y Cumplimiento",
-    "Subgerencia Cultura y Experiencia",
-    "Subgerencia Cultura y HRBP",
-    "Subgerencia Auditoria de Proyectos y Operaciones",
-    "Gerencia Comercial Peru",
-    "Subgerencia Planificacion Comercial",
-    "Direccion de Talento",
-    "Direccion Omnichannel Fulfillment Solutions",
-    "Direccion Omnichannel & Digital Sales",
-    "Gerencia Divisional Chile y Colombia",
-    "Subgerencia Legal Colombia",
-    "Gerencia de Desarrollo y Portafolio",
-    "Gerencia de Desarrollo"
-  ];
-  const gerRaw = buildComparatives(data, 'Gerencia Principal');
+  // Gerencia Corporativa
+  const gerRaw = buildComparatives(data, 'Gerencia Corporativa');
   const gerSorted = [];
-  GERENCIAS_ORDER.forEach(k => {
-    const found = gerRaw.find(e => e[0] === k);
-    if(found) gerSorted.push(found);
-  });
-  // Add remaining if any
+  
   gerRaw.forEach(e => {
-    if (!GERENCIAS_ORDER.includes(e[0]) && e[0] !== 'Sin datos') gerSorted.push(e);
+    if (e[0] !== 'Sin datos') gerSorted.push(e);
   });
+  
   // Send 'Sin datos' to the end
   const sdGer = gerRaw.find(e => e[0] === 'Sin datos');
   if (sdGer) gerSorted.push(sdGer);
@@ -698,7 +675,7 @@ function buildCharts(data) {
   gerContainer.style.height = Math.max(300, gerSorted.length * 28) + 'px';
 
   charts.gerencia = makeComparativeBar('chartGerencia', 
-    gerSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)),
+    gerSorted.map(e=>e[0].replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,35)),
     gerSorted.map(e=>e[1].total), 
     gerSorted.map(e=>e[1].active30d),
     true
@@ -903,6 +880,7 @@ function renderTable(data) {
       <td>${r['Nombre'] || '—'}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.email || '—'}</td>
       <td>${flag} ${r['Pais'] || '—'}</td>
+      <td style="font-size:12px">${(r['Gerencia Corporativa'] || '—').replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,30)}</td>
       <td>${(r['Gerencia Principal'] || '—').replace('Gerencia ','Ger. ').slice(0,30)}</td>
       <td style="font-size:12px">${(r['Gerencia / Subgerencia N3'] || '—').slice(0,35)}</td>
       <td><strong>${login}</strong></td>
