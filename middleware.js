@@ -3,6 +3,12 @@ export const config = {
 };
 
 export default function middleware(request) {
+  // Autenticación pausada a petición
+  return new Response(null, {
+    headers: { 'x-middleware-next': '1' }
+  });
+
+  /*
   const authorizationHeader = request.headers.get('authorization');
 
   if (authorizationHeader) {
@@ -22,4 +28,5 @@ export default function middleware(request) {
       'WWW-Authenticate': 'Basic realm="Acceso Seguro Dashboard Usabilidad"',
     },
   });
+  */
 }
