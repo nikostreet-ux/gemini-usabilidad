@@ -183,11 +183,7 @@
   <span class="filter-label">Filtros</span>
   <select class="filter-select" id="filterPais"><option value="">🌎 Todos los países</option></select>
   <select class="filter-select" id="filterGerencia"><option value="">🏢 Todas las gerencias</option></select>
-  <select class="filter-select" id="filterStatus">
-    <option value="">● Todos los estados</option>
-    <option value="active">Activo</option>
-    <option value="suspended">Suspendido</option>
-  </select>
+  <select class="filter-select" id="filterGerenciaN3"><option value="">🏢 Todas las subgerencias (N3)</option></select>
   <select class="filter-select" id="filterFamilia"><option value="">👤 Todas las familias</option></select>
   <button class="reset-btn" onclick="resetFilters()">↺ Resetear</button>
 </div>
@@ -195,29 +191,27 @@
 <div class="main">
   <!-- KPIs -->
   <div class="kpi-grid">
-    <div class="kpi-card blue"><div class="kpi-icon">👥</div><div class="kpi-value blue" id="kpiTotal">—</div><div class="kpi-label">Total Usuarios</div><div class="kpi-sub">Registros cargados</div></div>
-    <div class="kpi-card green"><div class="kpi-icon">✅</div><div class="kpi-value green" id="kpiActive">—</div><div class="kpi-label">Activos</div><div class="kpi-sub" id="kpiActivePct">—</div></div>
-    <div class="kpi-card red"><div class="kpi-icon">⛔</div><div class="kpi-value red" id="kpiSuspended">—</div><div class="kpi-label">Suspendidos</div><div class="kpi-sub" id="kpiSuspPct">—</div></div>
-    <div class="kpi-card amber"><div class="kpi-icon">🕐</div><div class="kpi-value amber" id="kpiRecent">—</div><div class="kpi-label">Activos Últimos 7 días</div><div class="kpi-sub">Login reciente</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">👥</div><div class="kpi-value blue" id="kpiTotal">—</div><div class="kpi-label">Invitados Gemini</div><div class="kpi-sub">Total Base Cargada</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">✅</div><div class="kpi-value green" id="kpiActive">—</div><div class="kpi-label">Usuarios Activos</div><div class="kpi-sub" id="kpiActivePct">Con registro de acceso</div></div>
+    <div class="kpi-card amber"><div class="kpi-icon">🕐</div><div class="kpi-value amber" id="kpiRecent">—</div><div class="kpi-label">Activos Últimos 30 días</div><div class="kpi-sub">Login reciente</div></div>
     <div class="kpi-card purple"><div class="kpi-icon">🌍</div><div class="kpi-value purple" id="kpiPaises">—</div><div class="kpi-label">Países</div><div class="kpi-sub" id="kpiPaisesDetail">—</div></div>
   </div>
 
   <!-- CHARTS ROW 1 -->
-  <div class="charts-grid" style="grid-template-columns:2fr 1fr">
-    <div class="chart-card"><div class="chart-title">Usuarios por Gerencia Principal</div><div class="chart-subtitle">Top gerencias con mayor número de usuarios</div><canvas id="chartGerencia" height="300"></canvas></div>
-    <div class="chart-card"><div class="chart-title">Distribución por Estado</div><div class="chart-subtitle">Activo vs. Suspendido</div><canvas id="chartStatus" height="300"></canvas></div>
+  <div class="charts-grid" style="grid-template-columns:1fr">
+    <div class="chart-card"><div class="chart-title">Usuarios por Gerencia Principal</div><div class="chart-subtitle">Total Invitados vs. Activos Últimos 30 Días</div><canvas id="chartGerencia" height="120"></canvas></div>
   </div>
 
   <!-- CHARTS ROW 2 -->
   <div class="charts-grid" style="grid-template-columns:1fr 1fr">
-    <div class="chart-card"><div class="chart-title">Top Familias de Cargo</div><div class="chart-subtitle">Distribución de usuarios por familia</div><canvas id="chartFamilia" height="280"></canvas></div>
-    <div class="chart-card"><div class="chart-title">Distribución por Antigüedad</div><div class="chart-subtitle">Tiempo en la empresa</div><canvas id="chartAntiguedad" height="280"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Top Familias de Cargo</div><div class="chart-subtitle">Invitados vs. Activos Últimos 30 Días</div><canvas id="chartFamilia" height="280"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Distribución por Antigüedad</div><div class="chart-subtitle">Invitados vs. Activos Últimos 30 Días</div><canvas id="chartAntiguedad" height="280"></canvas></div>
   </div>
 
   <!-- CHARTS ROW 3 -->
   <div class="charts-grid" style="grid-template-columns:1fr 1fr">
-    <div class="chart-card"><div class="chart-title">Usuarios por País</div><div class="chart-subtitle">Distribución geográfica</div><canvas id="chartPais" height="260"></canvas></div>
-    <div class="chart-card"><div class="chart-title">Actividad de Login (últimas semanas)</div><div class="chart-subtitle">Usuarios activos por fecha de último acceso</div><canvas id="chartLogin" height="260"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Usuarios por País</div><div class="chart-subtitle">Invitados vs. Activos Últimos 30 Días</div><canvas id="chartPais" height="260"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Actividad de Login (últimos 30 días)</div><div class="chart-subtitle">Cantidad de usuarios únicos por fecha de acceso</div><canvas id="chartLogin" height="260"></canvas></div>
   </div>
 
   <!-- TABLE -->
@@ -236,9 +230,9 @@
             <th class="sortable" onclick="sortTable('Nombre')">Nombre ↕</th>
             <th class="sortable" onclick="sortTable('email')">Email ↕</th>
             <th>País</th>
-            <th>Estado</th>
-            <th class="sortable" onclick="sortTable('last_login')">Último Login ↕</th>
             <th>Gerencia Principal</th>
+            <th>Subgerencia N3</th>
+            <th class="sortable" onclick="sortTable('last_login')">Último Login ↕</th>
             <th>Familia Cargo</th>
             <th>Antigüedad</th>
           </tr>
@@ -426,6 +420,7 @@ async function fetchData() {
 function populateFilters(data) {
   const paises   = [...new Set(data.map(r => r['Pais']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
   const gerencias= [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const subN3    = [...new Set(data.map(r => r['Gerencia / Subgerencia N3']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
   const familias = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
 
   const fill = (id, arr) => {
@@ -437,6 +432,7 @@ function populateFilters(data) {
   };
   fill('filterPais', paises);
   fill('filterGerencia', gerencias);
+  fill('filterGerenciaN3', subN3);
   fill('filterFamilia', familias);
 
   document.querySelectorAll('.filter-select').forEach(s => { s.onchange = applyFilters; });
@@ -445,16 +441,16 @@ function populateFilters(data) {
 function applyFilters() {
   const pais     = document.getElementById('filterPais').value;
   const gerencia = document.getElementById('filterGerencia').value;
-  const status   = document.getElementById('filterStatus').value;
+  const subn3    = document.getElementById('filterGerenciaN3').value;
   const familia  = document.getElementById('filterFamilia').value;
   const q        = document.getElementById('tableSearch').value.toLowerCase();
 
   filtered = allData.filter(r => {
     if (pais     && r['Pais'] !== pais) return false;
     if (gerencia && r['Gerencia Principal'] !== gerencia) return false;
-    if (status   && r.status !== status) return false;
+    if (subn3    && r['Gerencia / Subgerencia N3'] !== subn3) return false;
     if (familia  && r['Familia de cargo'] !== familia) return false;
-    if (q && !`${r['Nombre']} ${r.email} ${r['Gerencia Principal']}`.toLowerCase().includes(q)) return false;
+    if (q && !`${r['Nombre']} ${r.email} ${r['Gerencia Principal']} ${r['Gerencia / Subgerencia N3']}`.toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -464,7 +460,7 @@ function applyFilters() {
 }
 
 function resetFilters() {
-  ['filterPais','filterGerencia','filterStatus','filterFamilia'].forEach(id => document.getElementById(id).value = '');
+  ['filterPais','filterGerencia','filterGerenciaN3','filterFamilia'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('tableSearch').value = '';
   applyFilters();
 }
@@ -493,20 +489,40 @@ function renderAll(data) {
 // ─── KPIs ──────────────────────────────────────────────────────────────────
 function updateKPIs(data) {
   const total     = data.length;
-  const active    = data.filter(r => r.status === 'active').length;
-  const suspended = data.filter(r => r.status === 'suspended').length;
-  const cutoff7   = new Date(); cutoff7.setDate(cutoff7.getDate() - 7);
-  const recent    = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= cutoff7).length;
+  // Un usuario es activo si tiene registro de acceso (no nulo y no es 1970)
+  const active    = data.filter(r => r._parsed_login && !r._parsed_login.startsWith('1970-01-01')).length;
+  
+  const cutoff30  = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
+  const recent    = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= cutoff30).length;
+  
   const paises    = [...new Set(data.map(r => r['Pais']).filter(v => v && v !== 'Sin datos'))];
 
   document.getElementById('kpiTotal').textContent     = total;
   document.getElementById('kpiActive').textContent    = active;
-  document.getElementById('kpiSuspended').textContent = suspended;
   document.getElementById('kpiRecent').textContent    = recent;
   document.getElementById('kpiPaises').textContent    = paises.length;
   document.getElementById('kpiActivePct').textContent = total ? `${Math.round(active/total*100)}% del total` : '—';
-  document.getElementById('kpiSuspPct').textContent   = total ? `${Math.round(suspended/total*100)}% del total` : '—';
   document.getElementById('kpiPaisesDetail').textContent = paises.slice(0,3).join(', ');
+}
+
+// Helper para calcular Activos (Ultimos 30 dias) vs Total para los graficos
+function buildComparatives(data, groupByField) {
+  const cutoff30  = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
+  const map = {};
+  
+  data.forEach(r => {
+    const key = r[groupByField] || 'Sin datos';
+    if (!map[key]) map[key] = { total: 0, active30d: 0 };
+    map[key].total++;
+    
+    if (r._parsed_login && !r._parsed_login.startsWith('1970-01-01')) {
+      if (new Date(r._parsed_login) >= cutoff30) {
+        map[key].active30d++;
+      }
+    }
+  });
+  
+  return Object.entries(map).sort((a,b)=>b[1].total - a[1].total); // Sort by total descending
 }
 
 // ─── CHARTS ───────────────────────────────────────────────────────────────────
@@ -517,34 +533,50 @@ function buildCharts(data) {
   charts = {};
 
   // Gerencia
-  const gerMap = {};
-  data.forEach(r => { const g = r['Gerencia Principal'] || 'Sin datos'; gerMap[g] = (gerMap[g]||0)+1; });
-  const gerSorted = Object.entries(gerMap).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  charts.gerencia = makeBar('chartGerencia', gerSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,30)), gerSorted.map(e=>e[1]), PALETTE, true);
-
-  // Status
-  const act = data.filter(r=>r.status==='active').length;
-  const sus = data.length - act;
-  charts.status = makeDoughnut('chartStatus', ['Activo','Suspendido'], [act, sus], ['#059669','#dc2626']);
+  const gerSorted = buildComparatives(data, 'Gerencia Principal').slice(0, 15);
+  charts.gerencia = makeComparativeBar('chartGerencia', 
+    gerSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), 
+    gerSorted.map(e=>e[1].total), 
+    gerSorted.map(e=>e[1].active30d),
+    false
+  );
 
   // Familia
-  const famMap = {};
-  data.forEach(r => { const f = r['Familia de cargo'] || 'Sin datos'; famMap[f] = (famMap[f]||0)+1; });
-  const famSorted = Object.entries(famMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  charts.familia = makeBar('chartFamilia', famSorted.map(e=>e[0].slice(0,25)), famSorted.map(e=>e[1]), PALETTE, false);
+  const famSorted = buildComparatives(data, 'Familia de cargo').slice(0, 8);
+  charts.familia = makeComparativeBar('chartFamilia', 
+    famSorted.map(e=>e[0].slice(0,25)), 
+    famSorted.map(e=>e[1].total), 
+    famSorted.map(e=>e[1].active30d),
+    false
+  );
 
   // Antigüedad
   const ANT_ORDER = ['< 6 meses','< 1 año','1 - 3 años','3 - 5 años','5 - 10 años','> 10 años'];
-  const antMap = {};
-  data.forEach(r => { const a = r['Antiguedad'] || 'Sin datos'; antMap[a] = (antMap[a]||0)+1; });
-  const antLabels = ANT_ORDER.filter(k=>antMap[k]);
-  charts.antiguedad = makeBar('chartAntiguedad', antLabels, antLabels.map(k=>antMap[k]), PALETTE, false);
+  const antRaw = buildComparatives(data, 'Antiguedad');
+  // Re-sort Antigüedad based on chronological logic if present, else keep totals
+  const antSorted = [];
+  ANT_ORDER.forEach(k => {
+    const found = antRaw.find(e => e[0] === k);
+    if(found) antSorted.push(found);
+  });
+  // Add any missing ones at end
+  antRaw.forEach(e => { if(!ANT_ORDER.includes(e[0])) antSorted.push(e); });
+  
+  charts.antiguedad = makeComparativeBar('chartAntiguedad', 
+    antSorted.map(e=>e[0]), 
+    antSorted.map(e=>e[1].total), 
+    antSorted.map(e=>e[1].active30d),
+    false
+  );
 
-  // País
-  const paisMap = {};
-  data.forEach(r => { const p = r['Pais'] || 'Sin datos'; paisMap[p] = (paisMap[p]||0)+1; });
-  const paisSorted = Object.entries(paisMap).sort((a,b)=>b[1]-a[1]);
-  charts.pais = makeDoughnut('chartPais', paisSorted.map(e=>e[0]), paisSorted.map(e=>e[1]), PALETTE);
+  // País (Horizontal Bars as requested)
+  const paisSorted = buildComparatives(data, 'Pais');
+  charts.pais = makeComparativeBar('chartPais', 
+    paisSorted.map(e=>e[0]), 
+    paisSorted.map(e=>e[1].total), 
+    paisSorted.map(e=>e[1].active30d),
+    true // Horizontal
+  );
 
   // Login timeline
   const loginMap = {};
@@ -558,18 +590,28 @@ function buildCharts(data) {
   charts.login = makeLine('chartLogin', loginDates, loginDates.map(d=>loginMap[d]));
 }
 
-function makeBar(id, labels, values, colors, horizontal) {
+function makeComparativeBar(id, labels, totalVals, activeVals, horizontal) {
   const ctx = document.getElementById(id);
   if (!ctx) return null;
   return new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ data: values, backgroundColor: colors.map((c,i)=>colors[i%colors.length]+'cc'), borderWidth: 0, borderRadius: 4 }] },
+    data: { 
+      labels, 
+      datasets: [
+        { label: 'Total Invitados', data: totalVals, backgroundColor: '#cbd5e1', borderWidth: 0, borderRadius: 3 },
+        { label: 'Activos (30 días)', data: activeVals, backgroundColor: '#0284c7', borderWidth: 0, borderRadius: 3 }
+      ] 
+    },
     options: {
       indexAxis: horizontal ? 'y' : 'x',
-      responsive: true, plugins: { legend: { display: false } },
+      responsive: true, 
+      maintainAspectRatio: false,
+      plugins: { 
+        legend: { position: 'top', labels: { font: { size: 11 }, color: '#64748b', usePointStyle: true, boxWidth: 8 } }
+      },
       scales: {
-        x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', font: { size: 11 } } },
-        y: { grid: { display: !horizontal }, ticks: { color: '#64748b', font: { size: 11 } } }
+        x: { grid: { color: horizontal ? '#e2e8f0' : 'transparent' }, ticks: { color: '#64748b', font: { size: 11 } } },
+        y: { grid: { color: !horizontal ? '#e2e8f0' : 'transparent' }, ticks: { color: '#64748b', font: { size: 10 } } }
       }
     }
   });
@@ -619,8 +661,7 @@ function renderTable(data) {
 
   tbody.innerHTML = page.map(r => {
     const flag = flagMap[r['Pais']] || '🌐';
-    const st   = r.status === 'active' ? 'active' : 'suspended';
-    const stTxt= r.status === 'active' ? 'Activo' : 'Suspendido';
+    
     // Logica de formateo de fecha (de ISO 8601 a DD/MM/YYYY)
     const is1970 = r._parsed_login && r._parsed_login.startsWith('1970-01-01');
     let login = '—';
@@ -638,9 +679,9 @@ function renderTable(data) {
       <td>${r['Nombre'] || '—'}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.email || '—'}</td>
       <td>${flag} ${r['Pais'] || '—'}</td>
-      <td><span class="status-badge ${st}">${stTxt}</span></td>
-      <td>${login}</td>
-      <td style="font-size:12px">${(r['Gerencia Principal'] || '—').replace('Gerencia ','Ger. ').slice(0,35)}</td>
+      <td>${(r['Gerencia Principal'] || '—').replace('Gerencia ','Ger. ').slice(0,30)}</td>
+      <td style="font-size:12px">${(r['Gerencia / Subgerencia N3'] || '—').slice(0,35)}</td>
+      <td><strong>${login}</strong></td>
       <td style="font-size:12px">${(r['Familia de cargo'] || '—').slice(0,25)}</td>
       <td style="font-size:12px">${r['Antiguedad'] || '—'}</td>
     </tr>`;
