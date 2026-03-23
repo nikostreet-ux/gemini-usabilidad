@@ -182,7 +182,7 @@
 <div class="filters-bar">
   <span class="filter-label">Filtros</span>
   <select class="filter-select" id="filterPais"><option value="">🌎 Todos los países</option></select>
-  <select class="filter-select" id="filterGerencia"><option value="">🏢 Todas las gerencias</option></select>
+  <select class="filter-select" id="filterGerencia"><option value="">🏢 Gerencia Principal</option></select>
   <select class="filter-select" id="filterGerenciaN3"><option value="">🏢 Todas las subgerencias (N3)</option></select>
   <select class="filter-select" id="filterFamilia"><option value="">👤 Todas las familias</option></select>
   <button class="reset-btn" onclick="resetFilters()">↺ Resetear</button>
@@ -444,7 +444,37 @@ async function fetchData() {
 // ─── FILTERS ─────────────────────────────────────────────────────────────────
 function populateFilters(data) {
   const paises   = [...new Set(data.map(r => r['Pais']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
-  const gerencias= [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const gerencias = [
+    "Gerencia Operaciones Regional",
+    "Gerencia de Administracion",
+    "Gerencia de Estrategia y Performance",
+    "Gerencia de Marketing & Experiencia",
+    "Gerencia de Proyectos y Construccion",
+    "Gerencia Regional de Tecnologia",
+    "Gerencia de Finanzas y Relaciones con Inversionista",
+    "Subgerencia Auditoria Interna",
+    "Direccion Digital Product y Nuevos Negocios",
+    "Direccion de Compensaciones y Diseño Organizacional",
+    "Gerencia Expansion y Brownfield",
+    "Gerencia de Expansion Brownfield y Grandes Superficies",
+    "Gerencia Comercial Chile",
+    "Gerencia Legal Chile y Peru",
+    "Gerencia de Comunicaciones y Sostenibilidad",
+    "Gerencia Comercial Colombia",
+    "Direccion Riesgo y Cumplimiento",
+    "Subgerencia Cultura y Experiencia",
+    "Subgerencia Cultura y HRBP",
+    "Subgerencia Auditoria de Proyectos y Operaciones",
+    "Gerencia Comercial Peru",
+    "Subgerencia Planificacion Comercial",
+    "Direccion de Talento",
+    "Direccion Omnichannel Fulfillment Solutions",
+    "Direccion Omnichannel & Digital Sales",
+    "Gerencia Divisional Chile y Colombia",
+    "Subgerencia Legal Colombia",
+    "Gerencia de Desarrollo y Portafolio",
+    "Gerencia de Desarrollo"
+  ];
   const subN3    = [...new Set(data.map(r => r['Gerencia / Subgerencia N3']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
   const familias = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
 
