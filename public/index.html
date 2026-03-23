@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Usabilidad Gemini — Mallplaza</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
   :root {
@@ -356,6 +357,8 @@
 <div class="footer">Dashboard Gemini Usabilidad · Mallplaza · Datos sincronizados desde SharePoint via Power Automate</div>
 
 <script>
+Chart.register(ChartDataLabels);
+
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const CONFIG = {
   pageSize: 25,
@@ -551,13 +554,16 @@ function updateKPIs(data) {
   const recent    = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= cutoff30).length;
   
   const paises    = [...new Set(data.map(r => r['Pais']).filter(v => v && v !== 'Sin datos'))];
+  const flagMap   = { Chile:'🇨🇱', Peru:'🇵🇪', Colombia:'🇨🇴' };
 
   document.getElementById('kpiTotal').textContent     = total;
   document.getElementById('kpiActive').textContent    = active;
   document.getElementById('kpiRecent').textContent    = recent;
   document.getElementById('kpiPaises').textContent    = paises.length;
   document.getElementById('kpiActivePct').textContent = total ? `${Math.round(active/total*100)}% del total` : '—';
-  document.getElementById('kpiPaisesDetail').textContent = paises.slice(0,3).join(', ');
+  
+  const paisesDet = paises.slice(0,3).map(p => `${flagMap[p]||'🌐'} ${p}`).join(', ');
+  document.getElementById('kpiPaisesDetail').textContent = paisesDet;
 }
 
 // Helper para calcular Activos (Ultimos 30 dias) vs Total para los graficos
@@ -577,7 +583,15 @@ function buildComparatives(data, groupByField) {
     }
   });
   
-  return Object.entries(map).sort((a,b)=>b[1].total - a[1].total); // Sort by total descending
+  // Ordenar porcentualmente (active30d / total) descendente, dejando 'Sin datos' al final
+  return Object.entries(map).sort((a,b) => {
+    if (a[0] === 'Sin datos') return 1;
+    if (b[0] === 'Sin datos') return -1;
+    const pctA = a[1].total > 0 ? a[1].active30d / a[1].total : 0;
+    const pctB = b[1].total > 0 ? b[1].active30d / b[1].total : 0;
+    if (pctB !== pctA) return pctB - pctA;
+    return b[1].total - a[1].total; // Tiebreaker
+  });
 }
 
 // ─── CHARTS ───────────────────────────────────────────────────────────────────
@@ -597,7 +611,17 @@ function buildCharts(data) {
   );
 
   // Familia
-  const famSorted = buildComparatives(data, 'Familia de cargo').slice(0, 8);
+  const FAM_ORDER = ['Top Management','Middle Management','Junior Management','Especialista/ Profesional','Especialista/ Profesional Digital','Tecnico/ Vendedor','Administrativo'];
+  const famRaw = buildComparatives(data, 'Familia de cargo');
+  const famSorted = [];
+  FAM_ORDER.forEach(k => {
+    const found = famRaw.find(e => e[0] === k);
+    if(found) famSorted.push(found);
+  });
+  // Add 'Sin datos' at the end if present
+  const sdFam = famRaw.find(e => e[0] === 'Sin datos');
+  if(sdFam) famSorted.push(sdFam);
+
   charts.familia = makeComparativeBar('chartFamilia', 
     famSorted.map(e=>e[0].slice(0,25)), 
     famSorted.map(e=>e[1].total), 
@@ -663,8 +687,8 @@ function makeComparativeBar(id, labels, totalVals, activeVals, horizontal) {
     data: { 
       labels, 
       datasets: [
-        { label: 'Activos', data: pctActive, backgroundColor: '#0284c7', borderWidth: 0, barPercentage: 0.7 },
-        { label: 'Inactivos', data: pctInactive, backgroundColor: '#f97316', borderWidth: 0, barPercentage: 0.7 }
+        { label: 'Activos', data: pctActive, backgroundColor: '#0284c7', borderWidth: 0, barPercentage: 0.9, categoryPercentage: 0.9 },
+        { label: 'Inactivos', data: pctInactive, backgroundColor: '#f97316', borderWidth: 0, barPercentage: 0.9, categoryPercentage: 0.9 }
       ] 
     },
     options: {
@@ -672,6 +696,12 @@ function makeComparativeBar(id, labels, totalVals, activeVals, horizontal) {
       responsive: true, 
       maintainAspectRatio: false,
       plugins: { 
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold', size: 10 },
+          display: function(context) { return context.dataset.data[context.dataIndex] > 5; }, // Ocultar si es <= 5%
+          formatter: Math.round
+        },
         legend: { position: 'top', labels: { font: { size: 11 }, color: '#64748b', usePointStyle: true, boxWidth: 8 } },
         tooltip: {
           callbacks: {
