@@ -199,7 +199,7 @@
 
   <!-- CHARTS ROW 1 -->
   <div class="charts-grid" style="grid-template-columns:1fr">
-    <div class="chart-card"><div class="chart-title">Usuarios por Gerencia Principal</div><div class="chart-subtitle">Total Invitados vs. Activos Últimos 30 Días</div><canvas id="chartGerencia" height="120"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Usuarios por Gerencia Principal</div><div class="chart-subtitle">Total Invitados vs. Activos Últimos 30 Días</div><canvas id="chartGerencia" height="360"></canvas></div>
   </div>
 
   <!-- CHARTS ROW 2 -->
@@ -393,7 +393,12 @@ async function fetchData() {
           l = `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
       }
-      return { ...r, _parsed_login: l || null };
+      
+      const cleanR = {};
+      for (const key in r) {
+        cleanR[key] = (r[key] === '#N/D' || r[key] === 'N/A' || r[key] === 'n/a') ? 'Sin datos' : r[key];
+      }
+      return { ...cleanR, _parsed_login: l || null };
     });
 
     if (json.updatedAt) {
@@ -538,7 +543,7 @@ function buildCharts(data) {
     gerSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), 
     gerSorted.map(e=>e[1].total), 
     gerSorted.map(e=>e[1].active30d),
-    false
+    true
   );
 
   // Familia
@@ -547,7 +552,7 @@ function buildCharts(data) {
     famSorted.map(e=>e[0].slice(0,25)), 
     famSorted.map(e=>e[1].total), 
     famSorted.map(e=>e[1].active30d),
-    false
+    true
   );
 
   // Antigüedad
@@ -566,7 +571,7 @@ function buildCharts(data) {
     antSorted.map(e=>e[0]), 
     antSorted.map(e=>e[1].total), 
     antSorted.map(e=>e[1].active30d),
-    false
+    true
   );
 
   // País (Horizontal Bars as requested)
