@@ -95,6 +95,9 @@
   .tab-badge{font-size:10px;background:#fee2e2;color:#991b1b;border-radius:10px;padding:1px 7px;font-weight:600}
   .tab-pane{display:none}
   .tab-pane.active{display:block}
+  .chart-tab-btn { background: transparent; border: none; padding: 6px 12px; font-size: 11px; font-family: 'DM Sans', sans-serif; cursor: pointer; color: var(--text-muted); font-weight: 600; text-transform:uppercase; letter-spacing:0.5px; transition: all 0.2s; white-space: nowrap; }
+  .chart-tab-btn:hover { color: var(--text); }
+  .chart-tab-btn.active { background: var(--surface); color: var(--accent1); box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; margin: 3px; }
   /* LOADING STATE */
   .loading-overlay{display:none;position:fixed;inset:0;background:rgba(241,245,249,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px}
   .loading-overlay.visible{display:flex}
@@ -223,9 +226,27 @@
   <!-- CHARTS ROW 1 -->
   <div class="charts-grid" style="grid-template-columns:1fr">
     <div class="chart-card">
-      <div class="chart-title">Usuarios por Gerencia Corporativa</div>
-      <div class="chart-subtitle">Activos vs. Inactivos (Últimos 30 Días)</div>
-      <div style="position:relative;height:360px;width:100%"><canvas id="chartGerencia"></canvas></div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div class="chart-title">Usuarios por Área</div>
+          <div class="chart-subtitle" style="margin-bottom:0">Activos vs. Inactivos (Últimos 30 Días)</div>
+        </div>
+        <div style="display:flex; background:var(--surface2); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+          <button class="chart-tab-btn active" onclick="switchChartTab('corp', this)">Ger. Corporativa</button>
+          <button class="chart-tab-btn" onclick="switchChartTab('prin', this)">Ger. Principal</button>
+          <button class="chart-tab-btn" onclick="switchChartTab('subn3', this)">Subgerencia N3</button>
+        </div>
+      </div>
+      
+      <div id="chartWrap-corp" style="display:block;">
+        <div style="position:relative;width:100%"><canvas id="chartCorp"></canvas></div>
+      </div>
+      <div id="chartWrap-prin" style="display:none;">
+        <div style="position:relative;width:100%"><canvas id="chartPrin"></canvas></div>
+      </div>
+      <div id="chartWrap-subn3" style="display:none;">
+        <div style="position:relative;width:100%"><canvas id="chartSubn3"></canvas></div>
+      </div>
     </div>
   </div>
 
@@ -551,6 +572,15 @@ document.addEventListener('click', e => {
   });
 });
 
+function switchChartTab(tabId, btn) {
+  const container = btn.parentElement;
+  container.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['corp', 'prin', 'subn3'].forEach(id => {
+    document.getElementById(`chartWrap-${id}`).style.display = (id === tabId) ? 'block' : 'none';
+  });
+}
+
 function applyFilters() {
   const pais     = document.getElementById('filterPais').value;
   const gerenciasCorpSel = Array.from(document.querySelectorAll('#filterGerenciaCorp input:checked')).map(cb => cb.value);
@@ -659,27 +689,65 @@ function buildCharts(data) {
   Object.values(charts).forEach(c => c && c.destroy());
   charts = {};
 
-  // Gerencia Corporativa
-  const gerRaw = buildComparatives(data, 'Gerencia Corporativa');
-  const gerSorted = [];
-  
-  gerRaw.forEach(e => {
-    if (e[0] !== 'Sin datos') gerSorted.push(e);
-  });
-  
-  // Send 'Sin datos' to the end
-  const sdGer = gerRaw.find(e => e[0] === 'Sin datos');
-  if (sdGer) gerSorted.push(sdGer);
+  // 1. Gerencia Corporativa
+  const corpRaw = buildComparatives(data, 'Gerencia Corporativa');
+  const corpSorted = corpRaw.filter(e => e[0] !== 'Sin datos');
+  const corpSd = corpRaw.find(e => e[0] === 'Sin datos');
+  if (corpSd) corpSorted.push(corpSd);
 
-  const gerContainer = document.getElementById('chartGerencia').parentElement;
-  gerContainer.style.height = Math.max(300, gerSorted.length * 28) + 'px';
+  document.getElementById('chartCorp').parentElement.style.height = Math.max(300, corpSorted.length * 28) + 'px';
+  charts.corp = makeComparativeBar('chartCorp', corpSorted.map(e=>e[0].replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,35)), corpSorted.map(e=>e[1].total), corpSorted.map(e=>e[1].active30d), true);
 
-  charts.gerencia = makeComparativeBar('chartGerencia', 
-    gerSorted.map(e=>e[0].replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,35)),
-    gerSorted.map(e=>e[1].total), 
-    gerSorted.map(e=>e[1].active30d),
-    true
-  );
+  // 2. Gerencia Principal
+  const GERENCIAS_ORDER = [
+    "Gerencia Operaciones Regional",
+    "Gerencia de Administracion",
+    "Gerencia de Estrategia y Performance",
+    "Gerencia de Marketing & Experiencia",
+    "Gerencia de Proyectos y Construccion",
+    "Gerencia Regional de Tecnologia",
+    "Gerencia de Finanzas y Relaciones con Inversionista",
+    "Subgerencia Auditoria Interna",
+    "Direccion Digital Product y Nuevos Negocios",
+    "Direccion de Compensaciones y Diseño Organizacional",
+    "Gerencia Expansion y Brownfield",
+    "Gerencia de Expansion Brownfield y Grandes Superficies",
+    "Gerencia Comercial Chile",
+    "Gerencia Legal Chile y Peru",
+    "Gerencia de Comunicaciones y Sostenibilidad",
+    "Gerencia Comercial Colombia",
+    "Direccion Riesgo y Cumplimiento",
+    "Subgerencia Cultura y Experiencia",
+    "Subgerencia Cultura y HRBP",
+    "Subgerencia Auditoria de Proyectos y Operaciones",
+    "Gerencia Comercial Peru",
+    "Subgerencia Planificacion Comercial",
+    "Direccion de Talento",
+    "Direccion Omnichannel Fulfillment Solutions",
+    "Direccion Omnichannel & Digital Sales",
+    "Gerencia Divisional Chile y Colombia",
+    "Subgerencia Legal Colombia",
+    "Gerencia de Desarrollo y Portafolio",
+    "Gerencia de Desarrollo"
+  ];
+  const prinRaw = buildComparatives(data, 'Gerencia Principal');
+  const prinSorted = [];
+  GERENCIAS_ORDER.forEach(k => { const f = prinRaw.find(e=>e[0]===k); if(f) prinSorted.push(f); });
+  prinRaw.forEach(e => { if(!GERENCIAS_ORDER.includes(e[0]) && e[0] !== 'Sin datos') prinSorted.push(e); });
+  const prinSd = prinRaw.find(e => e[0] === 'Sin datos');
+  if (prinSd) prinSorted.push(prinSd);
+
+  document.getElementById('chartPrin').parentElement.style.height = Math.max(300, prinSorted.length * 28) + 'px';
+  charts.prin = makeComparativeBar('chartPrin', prinSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), prinSorted.map(e=>e[1].total), prinSorted.map(e=>e[1].active30d), true);
+
+  // 3. Subgerencia N3
+  const subn3Raw = buildComparatives(data, 'Gerencia / Subgerencia N3');
+  const subn3Sorted = subn3Raw.filter(e => e[0] !== 'Sin datos');
+  const subn3Sd = subn3Raw.find(e => e[0] === 'Sin datos');
+  if (subn3Sd) subn3Sorted.push(subn3Sd);
+
+  document.getElementById('chartSubn3').parentElement.style.height = Math.max(300, subn3Sorted.length * 28) + 'px';
+  charts.subn3 = makeComparativeBar('chartSubn3', subn3Sorted.map(e=>e[0].slice(0,35)), subn3Sorted.map(e=>e[1].total), subn3Sorted.map(e=>e[1].active30d), true);
 
   // Familia
   const FAM_ORDER = ['Top Management','Middle Management','Junior Management','Especialista/ Profesional','Especialista/ Profesional Digital','Tecnico/ Vendedor','Administrativo'];
