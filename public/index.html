@@ -498,6 +498,14 @@ function populateFilters(data) {
   const subN3    = [...new Set(data.map(r => r['Gerencia / Subgerencia N3']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
   const familias = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
 
+  const fill = (id, arr) => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = sel.options[0].outerHTML;
+    arr.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+    if (arr.includes(cur)) sel.value = cur;
+  };
+
   const fillMulti = (containerId, summaryId, prefix, arr) => {
     const container = document.getElementById(containerId);
     const selValues = Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
