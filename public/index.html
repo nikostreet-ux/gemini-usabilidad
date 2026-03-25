@@ -1202,9 +1202,9 @@ function updateInsights(data) {
   const familyAdoption = families.map(f => {
     const totalF = data.filter(r => r['Familia de cargo'] === f).length;
     const activeF = data.filter(r => r['Familia de cargo'] === f && r._parsed_login && new Date(r._parsed_login) >= d30).length;
-    return { name: f, pct: Math.round(activeF/totalF*100) };
+    return { name: f, pct: Math.round(activeF/totalF*100), active: activeF, total: totalF };
   }).sort((a,b)=>b.pct-a.pct);
-  document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map((f, i) => `<div class="bar-row"><div class="bar-lbl w160">${f.name}</div><div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:${familyPalette[i]||'#64748b'}"><span>${f.pct}%</span></div></div></div>`).join('');
+  document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map((f, i) => `<div class="bar-row"><div class="bar-lbl w160">${f.name}</div><div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:${familyPalette[i]||'#64748b'}"><span>${f.pct}% — ${f.active}/${f.total}</span></div></div></div>`).join('');
 
   // 6. Management Top 7
   const mgmtPalette = ['#7c3aed', '#0284c7', '#059669', '#d97706', '#b45309', '#dc2626', '#991b1b'];
@@ -1214,7 +1214,7 @@ function updateInsights(data) {
     const activeG = data.filter(r => r['Gerencia Principal'] === g && r._parsed_login && new Date(r._parsed_login) >= d30).length;
     return { name: g, pct: totalG > 5 ? Math.round(activeG/totalG*100) : 0, total: totalG, active: activeG };
   }).sort((a,b)=>b.pct-a.pct);
-  document.getElementById('insMgmtAdoption').innerHTML = mgmtComp.slice(0, 7).map((g, i) => `<div class="bar-row"><div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div><div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:${mgmtPalette[i]||'#64748b'}"><span>${g.pct}%</span></div></div></div>`).join('');
+  document.getElementById('insMgmtAdoption').innerHTML = mgmtComp.slice(0, 7).map((g, i) => `<div class="bar-row"><div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div><div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:${mgmtPalette[i]||'#64748b'}"><span>${g.pct}% — ${g.active}/${g.total}</span></div></div></div>`).join('');
 
   // 7. Inactive by Management
   const inactiveMgmt = mgmts.map(g => ({ name: g, count: data.filter(r => r['Gerencia Principal'] === g && (!r._parsed_login || new Date(r._parsed_login) < d90)).length })).sort((a,b)=>b.count-a.count).slice(0, 4);
