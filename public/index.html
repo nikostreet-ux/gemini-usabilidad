@@ -1189,6 +1189,7 @@ function updateInsights(data) {
   }).join('');
 
   // 4. Adoption by Countries
+  const countryColors = { 'Peru': '#0284c7', 'Chile': '#059669', 'Colombia': '#d97706' };
   const countries = [...new Set(data.map(r => r['Pais']).filter(Boolean))].sort();
   const countryAdoption = countries.map(c => {
     const totalC = data.filter(r => r['Pais'] === c).length;
@@ -1199,7 +1200,7 @@ function updateInsights(data) {
   document.getElementById('insCountryAdoption').innerHTML = countryAdoption.map(c => `
     <div class="bar-row">
       <div class="bar-lbl w100">${c.name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${c.pct}%;background:${c.pct>60?'#0284c7':'#d97706'}"><span>${c.pct}% — ${c.count}/${c.total}</span></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${c.pct}%;background:${countryColors[c.name]||'#64748b'}"><span>${c.pct}% — ${c.count}/${c.total}</span></div></div>
     </div>
   `).join('');
   
@@ -1207,6 +1208,7 @@ function updateInsights(data) {
   document.getElementById('insCountryNote').textContent = `⚡ ${bestCountry.name} tiene la mayor tasa de adopción (${bestCountry.pct}%). Replicar su modelo en los demás países.`;
 
   // 5. Adoption by Family
+  const familyPalette = ['#7c3aed', '#0284c7', '#059669', '#0891b2', '#d97706', '#dc2626', '#991b1b'];
   const families = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean))];
   const familyAdoption = families.map(f => {
     const totalF = data.filter(r => r['Familia de cargo'] === f).length;
@@ -1214,14 +1216,15 @@ function updateInsights(data) {
     return { name: f, pct: Math.round(activeF/totalF*100) };
   }).sort((a,b)=>b.pct-a.pct);
 
-  document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map(f => `
+  document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map((f, i) => `
     <div class="bar-row">
       <div class="bar-lbl w160">${f.name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:#7c3aed"><span>${f.pct}%</span></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:${familyPalette[i]||'#64748b'}"><span>${f.pct}%</span></div></div>
     </div>
   `).join('');
 
   // 6. Adoption by Management (Top 7)
+  const mgmtPalette = ['#7c3aed', '#0284c7', '#059669', '#d97706', '#b45309', '#dc2626', '#991b1b'];
   const mgmts = [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean))];
   const mgmtAdoption = mgmts.map(g => {
     const totalG = data.filter(r => r['Gerencia Principal'] === g).length;
@@ -1230,10 +1233,10 @@ function updateInsights(data) {
     return { name: g, pct: Math.round(activeG/totalG*100) };
   }).filter(Boolean).sort((a,b)=>b.pct-a.pct).slice(0, 7);
 
-  document.getElementById('insMgmtAdoption').innerHTML = mgmtAdoption.map(g => `
+  document.getElementById('insMgmtAdoption').innerHTML = mgmtAdoption.map((g, i) => `
     <div class="bar-row">
       <div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:#059669"><span>${g.pct}%</span></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:${mgmtPalette[i]||'#64748b'}"><span>${g.pct}%</span></div></div>
     </div>
   `).join('');
 
