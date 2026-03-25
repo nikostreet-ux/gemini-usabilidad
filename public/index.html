@@ -144,7 +144,7 @@
   .insight-item p em{color:var(--text-muted);font-style:normal;font-size:12px}
   .priority-tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle}
   .priority-tag.p1{background:#fee2e2;color:#991b1b}.priority-tag.p2{background:#fef3c7;color:#92400e}.priority-tag.p3{background:#d1fae5;color:#064e3b}
-  .ins-two-col{display:flex;flex-direction:column;gap:10px}
+  .ins-two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px 30px}
   .footer{text-align:center;padding:20px;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:8px}
   ::-webkit-scrollbar{width:6px;height:6px}
   ::-webkit-scrollbar-track{background:var(--bg)}
@@ -1230,19 +1230,8 @@ function updateInsights(data) {
       </div>`;
   }).join('');
 
-  // 6. Management Top 7 (Colores fijos por nombre de la versión anterior)
-  const mgmtColorMap = {
-    'Gerencia Comercial Perú': '#7c3aed',
-    'Gerencia Reg. Tecnología': '#0284c7',
-    'Gerencia Reg. Tecnologia': '#0284c7',
-    'Gerencia Regional de Tecnología': '#0284c7',
-    'Gerencia de Estrategia y Perf.': '#059669',
-    'Gerencia de Marketing & Exp.': '#d97706',
-    'Gerencia de Administración': '#b45309',
-    'Gerencia de Administracion': '#b45309',
-    'Gerencia Operaciones Regional': '#dc2626',
-    'Gerencia Comercial Chile': '#991b1b'
-  };
+  // 6. Management Top 7 (Paleta vibrante por ranking como en la versión original)
+  const mgmtPalette = ['#7c3aed', '#0284c7', '#059669', '#d97706', '#b45309', '#dc2626', '#991b1b'];
   const mgmts = [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean))];
   const mgmtComp = mgmts.map(g => {
     const totalG = data.filter(r => r['Gerencia Principal'] === g).length;
@@ -1256,7 +1245,7 @@ function updateInsights(data) {
       <div class="bar-row">
         <div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div>
         <div class="bar-track">
-          <div class="bar-fill ${isShort?'short-bar':''}" style="width:${g.pct}%;background:${mgmtColorMap[g.name]||mgmtColorMap[g.name.replace('Gerencia ','Ger. ')]||'#94a3b8'}">
+          <div class="bar-fill ${isShort?'short-bar':''}" style="width:${g.pct}%;background:${mgmtPalette[i]||'#94a3b8'}">
             <span>${g.pct}% — ${g.active}/${g.total}</span>
           </div>
         </div>
