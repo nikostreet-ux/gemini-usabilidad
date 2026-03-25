@@ -601,7 +601,11 @@ async function fetchData() {
     applyFilters();
   } catch (err) {
     console.error('fetchData error:', err);
-    document.getElementById('syncInfo').textContent = '⚠ Error al cargar';
+    // document.getElementById('syncInfo').textContent = '⚠ Error al cargar';
+    // Ocultar mensaje de error ruidoso para el usuario si hay datos previos
+    if (allData.length === 0) {
+      document.getElementById('syncInfo').textContent = '⚠ Error al sincronizar';
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = '↺ Actualizar';
@@ -1137,7 +1141,6 @@ function updateInsights(data) {
   const d90 = new Date(); d90.setDate(d90.getDate() - 90);
   const d365 = new Date(); d365.setDate(d365.getDate() - 365);
 
-  // 1. Actividad Global
   const active30 = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= d30).length;
   const inactive = data.filter(r => r._parsed_login && new Date(r._parsed_login) < d30 && new Date(r._parsed_login) >= d365 && !r._parsed_login.startsWith('1970-01-01')).length;
   const never = data.filter(r => !r._parsed_login || r._parsed_login.startsWith('1970-01-01')).length;
@@ -1155,21 +1158,22 @@ function updateInsights(data) {
   const criticalInactive = data.filter(r => !r._parsed_login || new Date(r._parsed_login) < d30).length;
   const critPct = Math.round(criticalInactive/total*100);
 
-  if (critPct > 30) {
+  const mgmtMap = {};
+  data.filter(r => !r._parsed_login || new Date(r._parsed_login) < d30).forEach(r => {
+    const g = r['Gerencia Principal'] || 'Otras';
+    mgmtMap[g] = (mgmtMap[g]||0)+1;
+  });
+  const sortedMgmts = Object.entries(mgmtMap).sort((a,b)=>b[1]-a[1]);
+  const worstMgmt = sortedMgmts[0];
+
+  if (critPct > 35) {
     alertBox.style.display = 'flex';
-    // Identificar gerencia con más inactivos
-    const mgmtMap = {};
-    data.filter(r => !r._parsed_login || new Date(r._parsed_login) < d30).forEach(r => {
-      const g = r['Gerencia Principal'] || 'Otras';
-      mgmtMap[g] = (mgmtMap[g]||0)+1;
-    });
-    const worstMgmt = Object.entries(mgmtMap).sort((a,b)=>b[1]-a[1])[0];
     alertText.innerHTML = `<strong>Riesgo de adopción crítico:</strong> ${criticalInactive} usuarios (${critPct}%) no han usado Gemini en los últimos 30 días. De ellos, ${never} nunca han accedido. La mayor concentración está en <strong>${worstMgmt?worstMgmt[0]:'N/A'}</strong>.`;
   } else {
     alertBox.style.display = 'none';
   }
 
-  // 3. Último Acceso Timeline
+  // 3. Timeline
   const timeline = [
     { label: '0 – 7 días', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) >= new Date().setDate(now.getDate()-7) && !r._parsed_login.startsWith('1970-01-01')).length, color: '#059669' },
     { label: '8 – 30 días', count: active30 - data.filter(r => r._parsed_login && new Date(r._parsed_login) >= new Date().setDate(now.getDate()-7) && !r._parsed_login.startsWith('1970-01-01')).length, color: '#0284c7' },
@@ -1177,18 +1181,9 @@ function updateInsights(data) {
     { label: '91 días – 1 año', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) < d90 && new Date(r._parsed_login) >= d365 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#dc2626' },
     { label: 'Nunca / +1 año', count: never + data.filter(r => r._parsed_login && new Date(r._parsed_login) < d365 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#991b1b' }
   ];
-  
-  const timelineContainer = document.getElementById('insAccessTimeline');
-  timelineContainer.innerHTML = timeline.map(t => {
-    const pct = Math.round(t.count / total * 100);
-    return `
-      <div class="bar-row">
-        <div class="bar-lbl w160">${t.label}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${t.color}"><span>${t.count}</span></div></div>
-      </div>`;
-  }).join('');
+  document.getElementById('insAccessTimeline').innerHTML = timeline.map(t => `<div class="bar-row"><div class="bar-lbl w160">${t.label}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(t.count/total*100)}%;background:${t.color}"><span>${t.count}</span></div></div></div>`).join('');
 
-  // 4. Adoption by Countries
+  // 4. Countries
   const countryColors = { 'Peru': '#0284c7', 'Chile': '#059669', 'Colombia': '#d97706' };
   const countries = [...new Set(data.map(r => r['Pais']).filter(Boolean))].sort();
   const countryAdoption = countries.map(c => {
@@ -1196,18 +1191,12 @@ function updateInsights(data) {
     const activeC = data.filter(r => r['Pais'] === c && r._parsed_login && new Date(r._parsed_login) >= d30).length;
     return { name: c, pct: Math.round(activeC/totalC*100), count: activeC, total: totalC };
   }).sort((a,b)=>b.pct-a.pct);
+  document.getElementById('insCountryAdoption').innerHTML = countryAdoption.map(c => `<div class="bar-row"><div class="bar-lbl w100">${c.name}</div><div class="bar-track"><div class="bar-fill" style="width:${c.pct}%;background:${countryColors[c.name]||'#64748b'}"><span>${c.pct}% — ${c.count}/${c.total}</span></div></div></div>`).join('');
+  if (countryAdoption.length > 0) {
+    document.getElementById('insCountryNote').textContent = `⚡ ${countryAdoption[0].name} tiene la mayor tasa de adopción (${countryAdoption[0].pct}%). Replicar su modelo en los demás países.`;
+  }
 
-  document.getElementById('insCountryAdoption').innerHTML = countryAdoption.map(c => `
-    <div class="bar-row">
-      <div class="bar-lbl w100">${c.name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${c.pct}%;background:${countryColors[c.name]||'#64748b'}"><span>${c.pct}% — ${c.count}/${c.total}</span></div></div>
-    </div>
-  `).join('');
-  
-  const bestCountry = countryAdoption[0];
-  document.getElementById('insCountryNote').textContent = `⚡ ${bestCountry.name} tiene la mayor tasa de adopción (${bestCountry.pct}%). Replicar su modelo en los demás países.`;
-
-  // 5. Adoption by Family
+  // 5. Family
   const familyPalette = ['#7c3aed', '#0284c7', '#059669', '#0891b2', '#d97706', '#dc2626', '#991b1b'];
   const families = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean))];
   const familyAdoption = families.map(f => {
@@ -1215,57 +1204,40 @@ function updateInsights(data) {
     const activeF = data.filter(r => r['Familia de cargo'] === f && r._parsed_login && new Date(r._parsed_login) >= d30).length;
     return { name: f, pct: Math.round(activeF/totalF*100) };
   }).sort((a,b)=>b.pct-a.pct);
+  document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map((f, i) => `<div class="bar-row"><div class="bar-lbl w160">${f.name}</div><div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:${familyPalette[i]||'#64748b'}"><span>${f.pct}%</span></div></div></div>`).join('');
 
-  document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map((f, i) => `
-    <div class="bar-row">
-      <div class="bar-lbl w160">${f.name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:${familyPalette[i]||'#64748b'}"><span>${f.pct}%</span></div></div>
-    </div>
-  `).join('');
-
-  // 6. Adoption by Management (Top 7)
+  // 6. Management Top 7
   const mgmtPalette = ['#7c3aed', '#0284c7', '#059669', '#d97706', '#b45309', '#dc2626', '#991b1b'];
   const mgmts = [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean))];
-  const mgmtAdoption = mgmts.map(g => {
+  const mgmtComp = mgmts.map(g => {
     const totalG = data.filter(r => r['Gerencia Principal'] === g).length;
-    if (totalG < 5) return null;
     const activeG = data.filter(r => r['Gerencia Principal'] === g && r._parsed_login && new Date(r._parsed_login) >= d30).length;
-    return { name: g, pct: Math.round(activeG/totalG*100) };
-  }).filter(Boolean).sort((a,b)=>b.pct-a.pct).slice(0, 7);
-
-  document.getElementById('insMgmtAdoption').innerHTML = mgmtAdoption.map((g, i) => `
-    <div class="bar-row">
-      <div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:${mgmtPalette[i]||'#64748b'}"><span>${g.pct}%</span></div></div>
-    </div>
-  `).join('');
+    return { name: g, pct: totalG > 5 ? Math.round(activeG/totalG*100) : 0, total: totalG, active: activeG };
+  }).sort((a,b)=>b.pct-a.pct);
+  document.getElementById('insMgmtAdoption').innerHTML = mgmtComp.slice(0, 7).map((g, i) => `<div class="bar-row"><div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div><div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:${mgmtPalette[i]||'#64748b'}"><span>${g.pct}%</span></div></div></div>`).join('');
 
   // 7. Inactive by Management
-  const inactiveMgmt = mgmts.map(g => {
-    const inactiveG = data.filter(r => r['Gerencia Principal'] === g && (!r._parsed_login || new Date(r._parsed_login) < d90)).length;
-    return { name: g, count: inactiveG };
-  }).sort((a,b)=>b.count-a.count).slice(0, 4);
+  const inactiveMgmt = mgmts.map(g => ({ name: g, count: data.filter(r => r['Gerencia Principal'] === g && (!r._parsed_login || new Date(r._parsed_login) < d90)).length })).sort((a,b)=>b.count-a.count).slice(0, 4);
+  document.getElementById('insInactiveMgmt').innerHTML = inactiveMgmt.map(g => `<div class="bar-row"><div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div><div class="bar-track"><div class="bar-fill" style="width:${inactiveMgmt[0].count?Math.round(g.count/inactiveMgmt[0].count*100):0}%;background:#dc2626"><span>${g.count}</span></div></div></div>`).join('');
 
-  document.getElementById('insInactiveMgmt').innerHTML = inactiveMgmt.map(g => `
-    <div class="bar-row">
-      <div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(g.count/inactiveMgmt[0].count*100)}%;background:#dc2626"><span>${g.count}</span></div></div>
-    </div>
-  `).join('');
+  // 8. Action List (COMPLETO DINÁMICO)
+  const neverPct = Math.round(never/total*100);
+  const bottomFam = familyAdoption.slice(-2);
+  const bestFam = familyAdoption[0] || { name: 'N/A', pct: 0 };
+  const worstComm = countryAdoption[countryAdoption.length-1] || { name: 'N/A', pct: 0 };
+  const topMgmt = mgmtComp[0] || { name: 'N/A', pct: 0 };
 
-  // 8. Action List
   const actions = [
-    { dot: 'red', title: `Brecha en ${worstMgmt?worstMgmt[0]:'N/A'}`, body: `Concentra ${worstMgmt?worstMgmt[1]:0} usuarios inactivos. Prioridad inmediata de activación.`, tag: 'p1', label: 'Prioridad 1' },
-    { dot: 'red', title: `${never} cuentas nunca han hecho login`, body: `Representan el ${Math.round(never/total*100)}% de la base total. Requieren campaña de onboarding.`, tag: 'p1', label: 'Prioridad 1' },
-    { dot: 'amber', title: `Baja adopción en ${familyAdoption.slice(-1)[0].name}`, body: `Es el segmento con menos uso (${familyAdoption.slice(-1)[0].pct}%). Revisar casos de uso.`, tag: 'p2', label: 'Prioridad 2' }
+    { dot: 'red', title: `Brecha en ${worstMgmt?worstMgmt[0]:'N/A'}`, body: `Representa la gerencia con más usuarios dormidos (${worstMgmt?worstMgmt[1]:0}). Requiere sesión de activación con sus líderes.`, tag: 'p1', label: 'Prioridad 1' },
+    { dot: 'red', title: `${never} cuentas activas que nunca han hecho login`, body: `Representan el ${neverPct}% de la base habilitada. Es crítico realizar una campaña de onboarding efectivo.`, tag: 'p1', label: 'Prioridad 1' },
+    { dot: 'amber', title: `${bottomFam.map(f=>f.name).join(' y ')}: adopción rezagada`, body: `Estos niveles jerárquicos presentan tasas de uso entre el ${bottomFam.length?bottomFam.slice(-1)[0].pct:0}% y el ${bottomFam.length?bottomFam[0].pct:0}%. Acción: diseñar prompts para sus tareas diarias.`, tag: 'p2', label: 'Prioridad 2' },
+    { dot: 'amber', title: `${worstComm.name} es el eslabón por país más débil (${worstComm.pct}%)`, body: `Compara su desempeño con el ${countryAdoption.length?countryAdoption[0].pct:0}% de ${countryAdoption.length?countryAdoption[0].name:''}. Realizar benchmarking interno inmediato.`, tag: 'p2', label: 'Prioridad 2' },
+    { dot: 'green', title: `${bestFam.name} (${bestFam.pct}%) lideran la adopción`, body: `Activos casi en su totalidad, pueden actuar como embajadores internos (Champions de Gemini).`, tag: 'p3', label: 'Oportunidad' },
+    { dot: 'green', title: `${countryAdoption.length?countryAdoption[0].name:''} despunta con una tasa del ${countryAdoption.length?countryAdoption[0].pct:0}%`, body: `Documentar el modelo de adopción local de este país y replicarlo en los demás territorios.`, tag: 'p3', label: 'Oportunidad' },
+    { dot: 'blue', title: `Alta concentración de uso puntual`, body: `Muchos accesos ocurren de forma reactiva ante urgencias. Acción: establecer activadores de uso recurrente semanal.`, tag: 'p3', label: 'Observación' }
   ];
   
-  document.getElementById('insActionList').innerHTML = actions.map(a => `
-    <div class="insight-item">
-      <div class="ins-dot ${a.dot}"></div>
-      <p><strong>${a.title}</strong><span class="priority-tag ${a.tag}">${a.label}</span><br>${a.body}</p>
-    </div>
-  `).join('');
+  document.getElementById('insActionList').innerHTML = actions.map(a => `<div class="insight-item"><div class="ins-dot ${a.dot}"></div><p><strong>${a.title}</strong><span class="priority-tag ${a.tag}">${a.label}</span><br>${a.body}</p></div>`).join('');
 }
 
 function switchTab(tab, btn) {
