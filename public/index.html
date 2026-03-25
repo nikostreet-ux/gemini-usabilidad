@@ -400,81 +400,67 @@
 </div>
 </div><!-- end tab-dashboard -->
 
-<!-- TAB: INSIGHTS (estático — basado en datos de Marzo 2026) -->
+<!-- TAB: INSIGHTS (DINÁMICO) -->
 <div id="tab-insights" class="tab-pane">
 <div class="insights-main">
-  <div class="alert-box" style="margin-top:4px">
+  <div class="alert-box" style="margin-top:4px; display:none;" id="insAlertBox">
     <div class="alert-icon">⚠️</div>
-    <div class="alert-text"><strong>Riesgo de adopción crítico:</strong> 288 usuarios (40%) no han usado Gemini en los últimos 31 días. De ellos, 247 tienen fecha de login en 1970-01-01, lo que indica que nunca han accedido desde que se les habilitó la cuenta. La mayor concentración está en Gerencia Operaciones Regional.</div>
+    <div class="alert-text" id="insAlertText"></div>
   </div>
+  
   <div class="ins-section">Actividad global</div>
   <div class="ins-kpi-row">
-    <div class="ins-kpi"><div class="val green">436</div><div class="lbl">Activos últimos 30 días</div><div class="sub">60% del total</div></div>
-    <div class="ins-kpi"><div class="val amber">18</div><div class="lbl">Inactivos (31 a 365 días)</div><div class="sub">2% del total</div></div>
-    <div class="ins-kpi"><div class="val red">271</div><div class="lbl">Nunca han hecho login</div><div class="sub">38% del total</div></div>
+    <div class="ins-kpi"><div class="val green" id="insKpiActive">0</div><div class="lbl">Activos últimos 30 días</div><div class="sub" id="insKpiActivePct">0% del total</div></div>
+    <div class="ins-kpi"><div class="val amber" id="insKpiInactive">0</div><div class="lbl">Inactivos (31 a 365 días)</div><div class="sub" id="insKpiInactivePct">0% del total</div></div>
+    <div class="ins-kpi"><div class="val red" id="insKpiNever">0</div><div class="lbl">Nunca han hecho login</div><div class="sub" id="insKpiNeverPct">0% del total</div></div>
   </div>
+
   <div class="ins-charts-row">
     <div class="ins-card">
       <div class="ins-card-title">Último acceso a la plataforma</div>
       <div class="ins-card-sub">Distribución de usuarios por cuándo fue su último login</div>
-      <div class="bar-row"><div class="bar-lbl w160">0 – 7 días</div><div class="bar-track"><div class="bar-fill" style="width:28.7%;background:#059669"><span>208</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">8 – 30 días</div><div class="bar-track"><div class="bar-fill" style="width:31.4%;background:#0284c7"><span>228</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">31 – 90 días</div><div class="bar-track"><div class="bar-fill" style="width:1.7%;background:#d97706;min-width:34px"><span>12</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">91 días – 1 año</div><div class="bar-track"><div class="bar-fill" style="width:0.8%;background:#dc2626;min-width:28px"><span>6</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Nunca / +1 año</div><div class="bar-track"><div class="bar-fill" style="width:37.4%;background:#991b1b"><span>271</span></div></div></div>
+      <div id="insAccessTimeline">
+        <!-- Generado dinámicamente -->
+      </div>
     </div>
     <div class="ins-card">
       <div class="ins-card-title">Adopción por país (últimos 30 días)</div>
       <div class="ins-card-sub">% de usuarios activos sobre total por país</div>
-      <div class="bar-row"><div class="bar-lbl w100">Perú</div><div class="bar-track"><div class="bar-fill" style="width:79%;background:#0284c7"><span>79% — 99/125</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w100">Chile</div><div class="bar-track"><div class="bar-fill" style="width:58%;background:#059669"><span>58% — 282/487</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w100">Colombia</div><div class="bar-track"><div class="bar-fill" style="width:49%;background:#d97706"><span>49% — 43/88</span></div></div></div>
-      <div class="bar-note">⚡ Perú tiene la mayor tasa de adopción pese a ser el segundo país en tamaño. Replicar el modelo de Perú en los demás países.</div>
+      <div id="insCountryAdoption">
+        <!-- Generado dinámicamente -->
+      </div>
+      <div class="bar-note" id="insCountryNote"></div>
     </div>
   </div>
+
   <div class="ins-charts-row">
     <div class="ins-card">
       <div class="ins-card-title">Adopción por familia de cargo (últimos 30 días)</div>
       <div class="ins-card-sub">% con login en los últimos 30 días por nivel jerárquico</div>
-      <div class="bar-row"><div class="bar-lbl w160">Top Management</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#7c3aed"><span>100%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Esp. Prof. Digital</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:#0284c7"><span>98%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Middle Management</div><div class="bar-track"><div class="bar-fill" style="width:81%;background:#059669"><span>81%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Junior Management</div><div class="bar-track"><div class="bar-fill" style="width:77%;background:#0891b2"><span>77%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Especialista / Prof.</div><div class="bar-track"><div class="bar-fill" style="width:53%;background:#d97706"><span>53%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Administrativo</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:#dc2626;min-width:30px"><span>18%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Técnico / Vendedor</div><div class="bar-track"><div class="bar-fill" style="width:13%;background:#991b1b;min-width:30px"><span>13%</span></div></div></div>
+      <div id="insFamilyAdoption">
+        <!-- Generado dinámicamente -->
+      </div>
     </div>
     <div class="ins-card">
       <div class="ins-card-title">Adopción por gerencia (últimos 30 días)</div>
       <div class="ins-card-sub">Gerencias con ≥10 usuarios — % activos 30 días</div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Comercial Perú</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#7c3aed"><span>100%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Reg. Tecnología</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:#0284c7"><span>96%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Estrategia & Perf.</div><div class="bar-track"><div class="bar-fill" style="width:85%;background:#059669"><span>85%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Marketing & Exp.</div><div class="bar-track"><div class="bar-fill" style="width:66%;background:#d97706"><span>66%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Administración</div><div class="bar-track"><div class="bar-fill" style="width:57%;background:#b45309"><span>57%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Operaciones Reg.</div><div class="bar-track"><div class="bar-fill" style="width:39%;background:#dc2626"><span>39%</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Comercial Chile</div><div class="bar-track"><div class="bar-fill" style="width:37%;background:#991b1b;min-width:32px"><span>37%</span></div></div></div>
+      <div id="insMgmtAdoption">
+        <!-- Generado dinámicamente -->
+      </div>
     </div>
   </div>
+
   <div class="ins-card full" style="margin-bottom:20px">
     <div class="ins-card-title">Usuarios inactivos por gerencia (sin acceso hace +90 días)</div>
     <div class="ins-card-sub">Gerencias con mayor cantidad de usuarios "dormidos"</div>
-    <div class="ins-two-col">
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Operaciones Reg.</div><div class="bar-track"><div class="bar-fill" style="width:90%;background:#991b1b"><span>154 usuarios</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Administración</div><div class="bar-track"><div class="bar-fill" style="width:37%;background:#dc2626"><span>31</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Comercial Chile</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:#d97706"><span>15</span></div></div></div>
-      <div class="bar-row"><div class="bar-lbl w160">Ger. Comercial Colombia</div><div class="bar-track"><div class="bar-fill" style="width:12%;background:#d97706"><span>10</span></div></div></div>
+    <div class="ins-two-col" id="insInactiveMgmt">
+      <!-- Generado dinámicamente -->
     </div>
   </div>
+
   <div class="ins-section">Insights accionables</div>
-  <div class="insights-list">
-    <div class="insight-item"><div class="ins-dot red"></div><p><strong>Brecha de adopción masiva en Operaciones Regional</strong><span class="priority-tag p1">Prioridad 1</span><br>Concentra 262 usuarios (36%) pero solo 39% usó Gemini este mes (muy por debajo de Tecnología con 96%). <em>Acción: sesión de activación específica con los líderes de esa gerencia.</em></p></div>
-    <div class="insight-item"><div class="ins-dot red"></div><p><strong>247 cuentas activas que nunca han hecho login</strong><span class="priority-tag p1">Prioridad 1</span><br>Habilitadas pero sin onboarding efectivo. <em>Acción: campaña de activación con email personalizado + link directo a Gemini.</em></p></div>
-    <div class="insight-item"><div class="ins-dot amber"></div><p><strong>Técnico/Vendedor y Administrativo: adopción rezagada (13–18%)</strong><span class="priority-tag p2">Prioridad 2</span><br>Probablemente los casos de uso promovidos no resonaron con sus tareas diarias. <em>Acción: diseñar 3–5 prompts específicos para sus funciones.</em></p></div>
-    <div class="insight-item"><div class="ins-dot amber"></div><p><strong>Ger. Comercial Chile es el eslabón comercial más débil (37%)</strong><span class="priority-tag p2">Prioridad 2</span><br>Comercial Perú logra un 100% de adopción con una estructura similar. <em>Acción: benchmarking interno inmediato con Comercial Perú.</em></p></div>
-    <div class="insight-item"><div class="ins-dot green"></div><p><strong>Top Management (100%) y Esp. Digital (98%) lideran</strong><span class="priority-tag p3">Oportunidad</span><br>Activos en su totalidad, pueden actuar como embajadores internos. <em>Acción: convertirlos en "Champions de Gemini" para permear el uso a otras áreas.</em></p></div>
-    <div class="insight-item"><div class="ins-dot green"></div><p><strong>Perú despunta con una tasa de actividad mensual asombrosa (79%)</strong><span class="priority-tag p3">Oportunidad</span><br><em>Acción: documentar de urgencia el modelo de adopción de Perú y replicarlo en territorio chileno y colombiano.</em></p></div>
-    <div class="insight-item"><div class="ins-dot blue"></div><p><strong>Uso concentrado a fin de mes</strong><span class="priority-tag p3">Observación</span><br>Puede indicar uso reactivo ante urgencias más que hábito consolidado. <em>Acción: establecer seguimiento mensual y diseñar activadores de uso recurrente.</em></p></div>
+  <div class="insights-list" id="insActionList">
+    <!-- Generado dinámicamente -->
   </div>
 </div>
 </div><!-- end tab-insights -->
@@ -586,12 +572,12 @@ async function fetchData() {
     allData = json.rows.map(r => {
       let l = r.last_login;
       if (typeof l === 'string') {
-        if (l.includes('T')) {
-            // Ya es ISO 8601
-            l = l.split('T')[0];
-        } else if (/^\d{2}\/\d{2}\/\d{4}/.test(l)) {
+        // Truncar si viene con espacio (ej: DD/MM/YYYY HH:MM:SS) o T (ISO)
+        l = l.split(/[\sT]/)[0];
+        
+        if (/^\d{2}\/\d{2}\/\d{4}/.test(l)) {
           // Si viene como DD/MM/YYYY...
-          const parts = l.split(/[\/\s]/);
+          const parts = l.split('/');
           l = `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
       }
@@ -769,6 +755,7 @@ function renderAll(data) {
   updateKPIs(data);
   buildCharts(data);
   renderTable(data);
+  updateInsights(data);
 }
 
 // ─── KPIs ──────────────────────────────────────────────────────────────────
@@ -1090,10 +1077,16 @@ function renderTable(data) {
     const is1970 = r._parsed_login && r._parsed_login.startsWith('1970-01-01');
     let login = '—';
     if (r.last_login && !is1970) {
-      if (r.last_login.includes('T')) {
-        // ISO format from PA: 2026-03-19T00:00:00.000Z
-        const parts = r.last_login.split('T')[0].split('-');
-        login = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      if (r.last_login.includes('T') || r.last_login.includes(' ')) {
+        const sep = r.last_login.includes('T') ? 'T' : ' ';
+        const datePart = r.last_login.split(sep)[0];
+        // Si tiene formato ISO YYYY-MM-DD lo reformateamos a DD/MM/YYYY
+        if (datePart.includes('-')) {
+          const parts = datePart.split('-');
+          login = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        } else {
+          login = datePart;
+        }
       } else {
         login = r.last_login;
       }
@@ -1135,6 +1128,143 @@ function renderTable(data) {
 }
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
+// ─── INSIGHTS ────────────────────────────────────────────────────────────────
+function updateInsights(data) {
+  if (!data || data.length === 0) return;
+  const total = data.length;
+  const now = new Date();
+  const d30 = new Date(); d30.setDate(d30.getDate() - 30);
+  const d90 = new Date(); d90.setDate(d90.getDate() - 90);
+  const d365 = new Date(); d365.setDate(d365.getDate() - 365);
+
+  // 1. Actividad Global
+  const active30 = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= d30).length;
+  const inactive = data.filter(r => r._parsed_login && new Date(r._parsed_login) < d30 && new Date(r._parsed_login) >= d365 && !r._parsed_login.startsWith('1970-01-01')).length;
+  const never = data.filter(r => !r._parsed_login || r._parsed_login.startsWith('1970-01-01')).length;
+
+  document.getElementById('insKpiActive').textContent = active30;
+  document.getElementById('insKpiActivePct').textContent = `${Math.round(active30/total*100)}% del total`;
+  document.getElementById('insKpiInactive').textContent = inactive;
+  document.getElementById('insKpiInactivePct').textContent = `${Math.round(inactive/total*100)}% del total`;
+  document.getElementById('insKpiNever').textContent = never;
+  document.getElementById('insKpiNeverPct').textContent = `${Math.round(never/total*100)}% del total`;
+
+  // 2. Alert Box
+  const alertBox = document.getElementById('insAlertBox');
+  const alertText = document.getElementById('insAlertText');
+  const criticalInactive = data.filter(r => !r._parsed_login || new Date(r._parsed_login) < d30).length;
+  const critPct = Math.round(criticalInactive/total*100);
+
+  if (critPct > 30) {
+    alertBox.style.display = 'flex';
+    // Identificar gerencia con más inactivos
+    const mgmtMap = {};
+    data.filter(r => !r._parsed_login || new Date(r._parsed_login) < d30).forEach(r => {
+      const g = r['Gerencia Principal'] || 'Otras';
+      mgmtMap[g] = (mgmtMap[g]||0)+1;
+    });
+    const worstMgmt = Object.entries(mgmtMap).sort((a,b)=>b[1]-a[1])[0];
+    alertText.innerHTML = `<strong>Riesgo de adopción crítico:</strong> ${criticalInactive} usuarios (${critPct}%) no han usado Gemini en los últimos 30 días. De ellos, ${never} nunca han accedido. La mayor concentración está en <strong>${worstMgmt?worstMgmt[0]:'N/A'}</strong>.`;
+  } else {
+    alertBox.style.display = 'none';
+  }
+
+  // 3. Último Acceso Timeline
+  const timeline = [
+    { label: '0 – 7 días', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) >= new Date().setDate(now.getDate()-7) && !r._parsed_login.startsWith('1970-01-01')).length, color: '#059669' },
+    { label: '8 – 30 días', count: active30 - data.filter(r => r._parsed_login && new Date(r._parsed_login) >= new Date().setDate(now.getDate()-7) && !r._parsed_login.startsWith('1970-01-01')).length, color: '#0284c7' },
+    { label: '31 – 90 días', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) < d30 && new Date(r._parsed_login) >= d90 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#d97706' },
+    { label: '91 días – 1 año', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) < d90 && new Date(r._parsed_login) >= d365 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#dc2626' },
+    { label: 'Nunca / +1 año', count: never + data.filter(r => r._parsed_login && new Date(r._parsed_login) < d365 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#991b1b' }
+  ];
+  
+  const timelineContainer = document.getElementById('insAccessTimeline');
+  timelineContainer.innerHTML = timeline.map(t => {
+    const pct = Math.round(t.count / total * 100);
+    return `
+      <div class="bar-row">
+        <div class="bar-lbl w160">${t.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${t.color}"><span>${t.count}</span></div></div>
+      </div>`;
+  }).join('');
+
+  // 4. Adoption by Countries
+  const countries = [...new Set(data.map(r => r['Pais']).filter(Boolean))].sort();
+  const countryAdoption = countries.map(c => {
+    const totalC = data.filter(r => r['Pais'] === c).length;
+    const activeC = data.filter(r => r['Pais'] === c && r._parsed_login && new Date(r._parsed_login) >= d30).length;
+    return { name: c, pct: Math.round(activeC/totalC*100), count: activeC, total: totalC };
+  }).sort((a,b)=>b.pct-a.pct);
+
+  document.getElementById('insCountryAdoption').innerHTML = countryAdoption.map(c => `
+    <div class="bar-row">
+      <div class="bar-lbl w100">${c.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${c.pct}%;background:${c.pct>60?'#0284c7':'#d97706'}"><span>${c.pct}% — ${c.count}/${c.total}</span></div></div>
+    </div>
+  `).join('');
+  
+  const bestCountry = countryAdoption[0];
+  document.getElementById('insCountryNote').textContent = `⚡ ${bestCountry.name} tiene la mayor tasa de adopción (${bestCountry.pct}%). Replicar su modelo en los demás países.`;
+
+  // 5. Adoption by Family
+  const families = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean))];
+  const familyAdoption = families.map(f => {
+    const totalF = data.filter(r => r['Familia de cargo'] === f).length;
+    const activeF = data.filter(r => r['Familia de cargo'] === f && r._parsed_login && new Date(r._parsed_login) >= d30).length;
+    return { name: f, pct: Math.round(activeF/totalF*100) };
+  }).sort((a,b)=>b.pct-a.pct);
+
+  document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map(f => `
+    <div class="bar-row">
+      <div class="bar-lbl w160">${f.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:#7c3aed"><span>${f.pct}%</span></div></div>
+    </div>
+  `).join('');
+
+  // 6. Adoption by Management (Top 7)
+  const mgmts = [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean))];
+  const mgmtAdoption = mgmts.map(g => {
+    const totalG = data.filter(r => r['Gerencia Principal'] === g).length;
+    if (totalG < 5) return null;
+    const activeG = data.filter(r => r['Gerencia Principal'] === g && r._parsed_login && new Date(r._parsed_login) >= d30).length;
+    return { name: g, pct: Math.round(activeG/totalG*100) };
+  }).filter(Boolean).sort((a,b)=>b.pct-a.pct).slice(0, 7);
+
+  document.getElementById('insMgmtAdoption').innerHTML = mgmtAdoption.map(g => `
+    <div class="bar-row">
+      <div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:#059669"><span>${g.pct}%</span></div></div>
+    </div>
+  `).join('');
+
+  // 7. Inactive by Management
+  const inactiveMgmt = mgmts.map(g => {
+    const inactiveG = data.filter(r => r['Gerencia Principal'] === g && (!r._parsed_login || new Date(r._parsed_login) < d90)).length;
+    return { name: g, count: inactiveG };
+  }).sort((a,b)=>b.count-a.count).slice(0, 4);
+
+  document.getElementById('insInactiveMgmt').innerHTML = inactiveMgmt.map(g => `
+    <div class="bar-row">
+      <div class="bar-lbl w160">${g.name.replace('Gerencia ','Ger. ')}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(g.count/inactiveMgmt[0].count*100)}%;background:#dc2626"><span>${g.count}</span></div></div>
+    </div>
+  `).join('');
+
+  // 8. Action List
+  const actions = [
+    { dot: 'red', title: `Brecha en ${worstMgmt?worstMgmt[0]:'N/A'}`, body: `Concentra ${worstMgmt?worstMgmt[1]:0} usuarios inactivos. Prioridad inmediata de activación.`, tag: 'p1', label: 'Prioridad 1' },
+    { dot: 'red', title: `${never} cuentas nunca han hecho login`, body: `Representan el ${Math.round(never/total*100)}% de la base total. Requieren campaña de onboarding.`, tag: 'p1', label: 'Prioridad 1' },
+    { dot: 'amber', title: `Baja adopción en ${familyAdoption.slice(-1)[0].name}`, body: `Es el segmento con menos uso (${familyAdoption.slice(-1)[0].pct}%). Revisar casos de uso.`, tag: 'p2', label: 'Prioridad 2' }
+  ];
+  
+  document.getElementById('insActionList').innerHTML = actions.map(a => `
+    <div class="insight-item">
+      <div class="ins-dot ${a.dot}"></div>
+      <p><strong>${a.title}</strong><span class="priority-tag ${a.tag}">${a.label}</span><br>${a.body}</p>
+    </div>
+  `).join('');
+}
+
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
