@@ -6,6 +6,7 @@
 <title>Dashboard Usabilidad Gemini — Mallplaza</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@3.1.0/dist/chartjs-chart-treemap.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
   :root {
@@ -115,7 +116,7 @@
   .alert-text{font-size:13px;color:#7f1d1d;line-height:1.6}
   .alert-text strong{font-weight:600}
   .ins-section{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin:28px 0 14px}
-  .ins-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .ins-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
   .ins-kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
   .ins-kpi .val{font-size:32px;font-weight:700;letter-spacing:-0.5px;line-height:1.1;margin-bottom:5px}
   .ins-kpi .val.red{color:var(--accent-red)}.ins-kpi .val.amber{color:var(--accent3)}.ins-kpi .val.green{color:var(--accent2)}.ins-kpi .val.blue{color:var(--accent1)}
@@ -340,12 +341,12 @@
   <div class="charts-grid" style="grid-template-columns:1fr 1fr">
     <div class="chart-card">
       <div class="chart-title">Tipo de Usuario</div>
-      <div class="chart-subtitle">Top, Regular, Low vs Inactive</div>
+      <div class="chart-subtitle">Top (+300 int.), Regular (50-299 int.), Low (1-49 int.), Inactive (0) vs Sin datos</div>
       <div style="position:relative;height:320px;width:100%"><canvas id="chartTipoUsuario"></canvas></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">Perfil de Uso (Complejidad)</div>
-      <div class="chart-subtitle">Nivel de profundidad de uso</div>
+      <div class="chart-subtitle">Soporte, Creación, Edición y Estructura, Alta Complejidad.</div>
       <div style="position:relative;height:320px;width:100%"><canvas id="chartPerfilUso"></canvas></div>
     </div>
   </div>
@@ -359,8 +360,17 @@
     </div>
     <div class="chart-card">
       <div class="chart-title">Horas Ahorradas por Familia de Cargo</div>
-      <div class="chart-subtitle">Productividad estimada</div>
+      <div class="chart-subtitle">Productividad estimada (Solo ≥15 hrs)</div>
       <div style="position:relative;height:260px;width:100%"><canvas id="chartHorasFamilia"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ROW 4 -->
+  <div class="charts-grid" style="grid-template-columns:1fr; margin-top:20px;">
+    <div class="chart-card">
+      <div class="chart-title">Horas Ahorradas por Gerencia Corporativa</div>
+      <div class="chart-subtitle">Treemap Interactivo</div>
+      <div style="position:relative;height:350px"><canvas id="chartTreemap"></canvas></div>
     </div>
   </div>
 
@@ -458,7 +468,7 @@
   </div>
 
   <div class="ins-card full" style="margin-bottom:20px">
-    <div class="ins-card-title">Usuarios inactivos por gerencia (sin acceso hace +90 días)</div>
+    <div class="ins-card-title">Usuarios inactivos por gerencia</div>
     <div class="ins-card-sub">Gerencias con mayor cantidad de usuarios "dormidos"</div>
     <div class="ins-two-col" id="insInactiveMgmt">
       <!-- Generado dinámicamente -->
@@ -846,7 +856,15 @@ function buildCharts(data) {
 
   // ROW 2: Tipo Usuario (Doughnut en %)
   const tipoRaw = buildCounts(data, 'tipo_de_usuario');
-  charts.tipoUsuario = makePercentDoughnut('chartTipoUsuario', tipoRaw.map(e=>e[0]), tipoRaw.map(e=>e[1]), ['#059669','#0284c7','#d97706','#dc2626']);
+  const getTipoColor = (k) => {
+    let _k = k.toLowerCase();
+    if(_k.includes('top')) return '#059669'; 
+    if(_k.includes('regular')) return '#0284c7'; 
+    if(_k.includes('low')) return '#d97706'; 
+    if(_k.includes('inactiv')) return '#dc2626'; 
+    return '#94a3b8'; 
+  };
+  charts.tipoUsuario = makePercentDoughnut('chartTipoUsuario', tipoRaw.map(e=>e[0]), tipoRaw.map(e=>e[1]), tipoRaw.map(e=>getTipoColor(e[0])));
 
   // ROW 2: Perfil Uso (Radar / Spider en %)
   const perfilRaw = buildCounts(data, 'perfil_uso_complejidad')
@@ -858,10 +876,14 @@ function buildCharts(data) {
   charts.generacion = makeComparativeBar('chartGeneracion', genRaw.map(e=>e[0]), genRaw.map(e=>e[1].total), genRaw.map(e=>e[1].active), false);
 
   // ROW 3: Horas Familias (Bar horizontal con más separación)
-  const horasFam = buildSums(data, 'Familia de Cargo', 'total_horas_ahorradas').filter(e=>e[0]!=='Sin datos');
+  const horasFam = buildSums(data, 'Familia de Cargo', 'total_horas_ahorradas').filter(e=>e[0]!=='Sin datos' && Math.round(e[1]) >= 15);
   const chartHorasContainer = document.getElementById('chartHorasFamilia').parentElement;
   if(chartHorasContainer) chartHorasContainer.style.height = Math.max(260, horasFam.length * 35) + 'px';
   charts.horasFam = makeHorasBar('chartHorasFamilia', horasFam.map(e=>e[0].slice(0,25)), horasFam.map(e=>Math.round(e[1])));
+
+  // ROW 4: Treemap Gerencia Corporativa
+  const hrCorp = buildSums(data, 'Gerencia Corporativa', 'total_horas_ahorradas').filter(e=>e[0]!=='Sin datos' && Math.round(e[1]) > 0);
+  charts.treemap = makeTreemap('chartTreemap', hrCorp.map(e => ({ name: e[0], value: Math.round(e[1]) })));
 }
 
 // ─── Doughnut (Porcentajes puros) ───────────────────────────────────────────
@@ -969,6 +991,45 @@ function makeHorasBar(id, labels, values) {
       scales: {
         x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', font: { size: 10 } } },
         y: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ─── Treemap ────────────────────────────────────────────────────────────────
+function makeTreemap(id, dataArr) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return null;
+  return new Chart(ctx, {
+    type: 'treemap',
+    data: {
+      datasets: [{
+        tree: dataArr,
+        key: 'value',
+        groups: ['name'],
+        spacing: 2,
+        borderWidth: 0,
+        backgroundColor: (ctx2) => {
+          if (ctx2.type !== 'data' || !dataArr[0]) return 'transparent';
+          const maxVal = dataArr[0].value; 
+          const alpha = 0.2 + 0.8 * (ctx2.raw.v / maxVal);
+          return `rgba(2, 132, 199, ${alpha})`;
+        },
+        labels: {
+          display: true,
+          color: '#fff',
+          font: { weight: 'bold', size: 10 },
+          formatter: (ctx2) => [ctx2.raw.g, ctx2.raw.v + ' hrs']
+        }
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        datalabels: { display: false },
+        tooltip: { callbacks: { label: ctx2 => `${ctx2.raw.g}: ${ctx2.raw.v} hrs` } }
       }
     }
   });
