@@ -287,16 +287,19 @@
   </details>
 
   <select class="filter-select" id="filterFamilia"><option value="">👤 Todas las familias</option></select>
+  <select class="filter-select" id="filterGeneracion"><option value="">🌟 Todas las generaciones</option></select>
+  <select class="filter-select" id="filterGenero"><option value="">👥 Todos los géneros</option></select>
+  <select class="filter-select" id="filterPerfil"><option value="">🛠️ Todos los perfiles de uso</option></select>
   <button class="reset-btn" onclick="resetFilters()">↺ Resetear</button>
 </div>
 
 <div class="main">
   <!-- KPIs -->
   <div class="kpi-grid">
-    <div class="kpi-card blue"><div class="kpi-icon">👥</div><div class="kpi-value blue" id="kpiTotal">—</div><div class="kpi-label">Invitados Gemini</div><div class="kpi-sub">Total Base Cargada</div></div>
-    <div class="kpi-card green"><div class="kpi-icon">✅</div><div class="kpi-value green" id="kpiActive">—</div><div class="kpi-label">Usuarios Activos</div><div class="kpi-sub" id="kpiActivePct">Con registro de acceso</div></div>
-    <div class="kpi-card amber"><div class="kpi-icon">🕐</div><div class="kpi-value amber" id="kpiRecent">—</div><div class="kpi-label">Activos Últimos 30 días</div><div class="kpi-sub">Login reciente</div></div>
-    <div class="kpi-card purple"><div class="kpi-icon">🌍</div><div class="kpi-value purple" id="kpiPaises">—</div><div class="kpi-label">Países</div><div class="kpi-sub" id="kpiPaisesDetail">—</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">👥</div><div class="kpi-value blue" id="kpiTotal">—</div><div class="kpi-label">Base Cargada</div><div class="kpi-sub">Total de empleados</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">✅</div><div class="kpi-value green" id="kpiActive">—</div><div class="kpi-label">Usuarios Activos</div><div class="kpi-sub" id="kpiActivePct">Con registro de uso</div></div>
+    <div class="kpi-card amber"><div class="kpi-icon">💬</div><div class="kpi-value amber" id="kpiInteracciones">—</div><div class="kpi-label">Total Interacciones</div><div class="kpi-sub">Consultas a Gemini</div></div>
+    <div class="kpi-card purple"><div class="kpi-icon">⏱️</div><div class="kpi-value purple" id="kpiHoras">—</div><div class="kpi-label">Horas Ahorradas</div><div class="kpi-sub" id="kpiHorasDetail">Estimadas</div></div>
   </div>
 
   <!-- CHARTS ROW 1 -->
@@ -337,28 +340,28 @@
   <!-- CHARTS ROW 2 -->
   <div class="charts-grid" style="grid-template-columns:1fr 1fr">
     <div class="chart-card">
-      <div class="chart-title">Top Familias de Cargo</div>
-      <div class="chart-subtitle">Activos vs. Inactivos</div>
-      <div style="position:relative;height:320px;width:100%"><canvas id="chartFamilia"></canvas></div>
+      <div class="chart-title">Tipo de Usuario</div>
+      <div class="chart-subtitle">Top, Regular, Low vs Inactive</div>
+      <div style="position:relative;height:320px;width:100%"><canvas id="chartTipoUsuario"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Distribución por Antigüedad</div>
-      <div class="chart-subtitle">Activos vs. Inactivos</div>
-      <div style="position:relative;height:320px;width:100%"><canvas id="chartAntiguedad"></canvas></div>
+      <div class="chart-title">Perfil de Uso (Complejidad)</div>
+      <div class="chart-subtitle">Nivel de profundidad de uso</div>
+      <div style="position:relative;height:320px;width:100%"><canvas id="chartPerfilUso"></canvas></div>
     </div>
   </div>
 
   <!-- CHARTS ROW 3 -->
   <div class="charts-grid" style="grid-template-columns:1fr 1fr">
     <div class="chart-card">
-      <div class="chart-title">Usuarios por País</div>
+      <div class="chart-title">Adopción por Generación</div>
       <div class="chart-subtitle">Activos vs. Inactivos</div>
-      <div style="position:relative;height:260px;width:100%"><canvas id="chartPais"></canvas></div>
+      <div style="position:relative;height:260px;width:100%"><canvas id="chartGeneracion"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Actividad de Login (últimos 30 días)</div>
-      <div class="chart-subtitle">Cantidad de usuarios únicos por fecha de acceso</div>
-      <div style="position:relative;height:260px;width:100%"><canvas id="chartLogin"></canvas></div>
+      <div class="chart-title">Horas Ahorradas por Familia de Cargo</div>
+      <div class="chart-subtitle">Productividad estimada</div>
+      <div style="position:relative;height:260px;width:100%"><canvas id="chartHorasFamilia"></canvas></div>
     </div>
   </div>
 
@@ -375,15 +378,17 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th class="sortable" onclick="sortTable('Nombre')">Nombre ↕</th>
-            <th class="sortable" onclick="sortTable('email')">Email ↕</th>
+            <th class="sortable" onclick="sortTable('Nombre Completo')">Nombre ↕</th>
+            <th class="sortable" onclick="sortTable('Correo')">Correo ↕</th>
             <th>País</th>
             <th>Ger. Corporativa</th>
             <th>Ger. Principal</th>
-            <th>Subgerencia N3</th>
-            <th class="sortable" onclick="sortTable('last_login')">Último Login ↕</th>
-            <th>Familia Cargo</th>
-            <th>Antigüedad</th>
+            <th class="sortable" onclick="sortTable('Familia de Cargo')">Familia Cargo ↕</th>
+            <th>Generación</th>
+            <th>Perfil Uso</th>
+            <th class="sortable" onclick="sortTable('total_interacciones')">Interacciones ↕</th>
+            <th class="sortable" onclick="sortTable('tipo_de_usuario')">Tipo Usuario ↕</th>
+            <th class="sortable" onclick="sortTable('total_horas_ahorradas')">Hrs Ahorradas ↕</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -570,25 +575,15 @@ async function fetchData() {
 
     document.getElementById('noDataMsg').style.display = 'none';
 
-    // Helper: parse date to standard format (YYYY-MM-DDT00:00) so sorting/comparisons just work everywhere
     allData = json.rows.map(r => {
-      let l = r.last_login;
-      if (typeof l === 'string') {
-        // Truncar si viene con espacio (ej: DD/MM/YYYY HH:MM:SS) o T (ISO)
-        l = l.split(/[\sT]/)[0];
-        
-        if (/^\d{2}\/\d{2}\/\d{4}/.test(l)) {
-          // Si viene como DD/MM/YYYY...
-          const parts = l.split('/');
-          l = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-      }
-      
       const cleanR = {};
       for (const key in r) {
-        cleanR[key] = (r[key] === '#N/D' || r[key] === 'N/A' || r[key] === 'n/a') ? 'Sin datos' : r[key];
+        cleanR[key] = (r[key] === '#N/D' || r[key] === 'N/A' || r[key] === 'n/a' || r[key] === '') ? 'Sin datos' : r[key];
       }
-      return { ...cleanR, _parsed_login: l || null };
+      // Ensure numeric fields are numbers for calculations
+      cleanR['total_interacciones'] = parseInt(cleanR['total_interacciones']) || 0;
+      cleanR['total_horas_ahorradas'] = parseFloat(cleanR['total_horas_ahorradas']) || 0;
+      return cleanR;
     });
 
     if (json.updatedAt) {
@@ -619,39 +614,12 @@ async function fetchData() {
 function populateFilters(data) {
   const paises   = [...new Set(data.map(r => r['Pais']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
   const gerenciasCorp = [...new Set(data.map(r => r['Gerencia Corporativa']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
-  const gerencias = [
-    "Gerencia Operaciones Regional",
-    "Gerencia de Administracion",
-    "Gerencia de Estrategia y Performance",
-    "Gerencia de Marketing & Experiencia",
-    "Gerencia de Proyectos y Construccion",
-    "Gerencia Regional de Tecnologia",
-    "Gerencia de Finanzas y Relaciones con Inversionista",
-    "Subgerencia Auditoria Interna",
-    "Direccion Digital Product y Nuevos Negocios",
-    "Direccion de Compensaciones y Diseño Organizacional",
-    "Gerencia Expansion y Brownfield",
-    "Gerencia de Expansion Brownfield y Grandes Superficies",
-    "Gerencia Comercial Chile",
-    "Gerencia Legal Chile y Peru",
-    "Gerencia de Comunicaciones y Sostenibilidad",
-    "Gerencia Comercial Colombia",
-    "Direccion Riesgo y Cumplimiento",
-    "Subgerencia Cultura y Experiencia",
-    "Subgerencia Cultura y HRBP",
-    "Subgerencia Auditoria de Proyectos y Operaciones",
-    "Gerencia Comercial Peru",
-    "Subgerencia Planificacion Comercial",
-    "Direccion de Talento",
-    "Direccion Omnichannel Fulfillment Solutions",
-    "Direccion Omnichannel & Digital Sales",
-    "Gerencia Divisional Chile y Colombia",
-    "Subgerencia Legal Colombia",
-    "Gerencia de Desarrollo y Portafolio",
-    "Gerencia de Desarrollo"
-  ];
-  const subN3    = [...new Set(data.map(r => r['Gerencia / Subgerencia N3']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
-  const familias = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const gerencias = [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const subN3    = [...new Set(data.map(r => r['Gerencia /subgerencia N3']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const familias = [...new Set(data.map(r => r['Familia de Cargo']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const generacion = [...new Set(data.map(r => r['Generacion']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const genero = [...new Set(data.map(r => r['Genero']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
+  const perfiles = [...new Set(data.map(r => r['perfil_uso_complejidad']).filter(Boolean).filter(v => v !== 'Sin datos'))].sort();
 
   const fill = (id, arr) => {
     const sel = document.getElementById(id);
@@ -689,6 +657,9 @@ function populateFilters(data) {
   fillMulti('filterGerencia', 'filterGerenciaSummary', '🏢 Ger. Principal', gerencias);
   fillMulti('filterGerenciaN3', 'filterGerenciaN3Summary', '🏢 Sub N3', subN3);
   fill('filterFamilia', familias);
+  fill('filterGeneracion', generacion);
+  fill('filterGenero', genero);
+  fill('filterPerfil', perfiles);
 
   document.querySelectorAll('.filter-select').forEach(s => { s.onchange = applyFilters; });
 }
@@ -714,15 +685,21 @@ function applyFilters() {
   const gerenciasSel = Array.from(document.querySelectorAll('#filterGerencia input:checked')).map(cb => cb.value);
   const subn3Sel = Array.from(document.querySelectorAll('#filterGerenciaN3 input:checked')).map(cb => cb.value);
   const familia  = document.getElementById('filterFamilia').value;
+  const gen      = document.getElementById('filterGeneracion').value;
+  const genero   = document.getElementById('filterGenero').value;
+  const perfil   = document.getElementById('filterPerfil').value;
   const q        = document.getElementById('tableSearch').value.toLowerCase();
 
   filtered = allData.filter(r => {
     if (pais     && r['Pais'] !== pais) return false;
     if (gerenciasCorpSel.length > 0 && !gerenciasCorpSel.includes(r['Gerencia Corporativa'])) return false;
     if (gerenciasSel.length > 0 && !gerenciasSel.includes(r['Gerencia Principal'])) return false;
-    if (subn3Sel.length > 0 && !subn3Sel.includes(r['Gerencia / Subgerencia N3'])) return false;
-    if (familia  && r['Familia de cargo'] !== familia) return false;
-    if (q && !`${r['Nombre']} ${r.email} ${r['Gerencia Principal']} ${r['Gerencia / Subgerencia N3']}`.toLowerCase().includes(q)) return false;
+    if (subn3Sel.length > 0 && !subn3Sel.includes(r['Gerencia /subgerencia N3'])) return false;
+    if (familia  && r['Familia de Cargo'] !== familia) return false;
+    if (gen      && r['Generacion'] !== gen) return false;
+    if (genero   && r['Genero'] !== genero) return false;
+    if (perfil   && r['perfil_uso_complejidad'] !== perfil) return false;
+    if (q && !`${r['Nombre Completo']} ${r['Correo']} ${r['Gerencia Principal']} ${r['Gerencia /subgerencia N3']}`.toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -732,7 +709,7 @@ function applyFilters() {
 }
 
 function resetFilters() {
-  ['filterPais','filterFamilia'].forEach(id => document.getElementById(id).value = '');
+  ['filterPais','filterFamilia','filterGeneracion','filterGenero','filterPerfil'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.multi-select input[type="checkbox"]').forEach(cb => cb.checked = false);
   document.getElementById('tableSearch').value = '';
   document.getElementById('filterGerenciaCorpSummary').innerHTML = '🏢 Ger. Corp: Todas';
@@ -750,8 +727,15 @@ function sortTable(key) {
 }
 function doSort() {
   filtered.sort((a, b) => {
-    const va = ((sortKey === 'last_login' ? a._parsed_login : a[sortKey]) || '').toString().toLowerCase();
-    const vb = ((sortKey === 'last_login' ? b._parsed_login : b[sortKey]) || '').toString().toLowerCase();
+    let va = a[sortKey];
+    let vb = b[sortKey];
+    if (typeof va === 'number' || typeof vb === 'number') {
+      va = Number(va) || 0;
+      vb = Number(vb) || 0;
+      return sortAsc ? va - vb : vb - va;
+    }
+    va = (va || '').toString().toLowerCase();
+    vb = (vb || '').toString().toLowerCase();
     return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
   });
 }
@@ -767,39 +751,29 @@ function renderAll(data) {
 // ─── KPIs ──────────────────────────────────────────────────────────────────
 function updateKPIs(data) {
   const total     = data.length;
-  // Un usuario es activo si tiene registro de acceso (no nulo y no es 1970)
-  const active    = data.filter(r => r._parsed_login && !r._parsed_login.startsWith('1970-01-01')).length;
+  // Un usuario es activo si interacciones > 0 o su tipo no es inactive
+  const active    = data.filter(r => (r.total_interacciones > 0) || (r.tipo_de_usuario && r.tipo_de_usuario !== '0 (inactive)')).length;
   
-  const cutoff30  = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
-  const recent    = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= cutoff30).length;
+  const totalInteracciones = data.reduce((acc, r) => acc + (r.total_interacciones || 0), 0);
+  const totalHorasDet = data.reduce((acc, r) => acc + (r.total_horas_ahorradas || 0), 0);
   
-  const paises    = [...new Set(data.map(r => r['Pais']).filter(v => v && v !== 'Sin datos'))];
-  const flagMap   = { Chile:'🇨🇱', Peru:'🇵🇪', Colombia:'🇨🇴' };
-
   document.getElementById('kpiTotal').textContent     = total;
   document.getElementById('kpiActive').textContent    = active;
-  document.getElementById('kpiRecent').textContent    = recent;
-  document.getElementById('kpiPaises').textContent    = paises.length;
+  document.getElementById('kpiInteracciones').textContent = totalInteracciones;
+  document.getElementById('kpiHoras').textContent     = Math.round(totalHorasDet) + ' hrs';
   document.getElementById('kpiActivePct').textContent = total ? `${Math.round(active/total*100)}% del total` : '—';
-  
-  const paisesDet = paises.slice(0,3).map(p => `${flagMap[p]||'🌐'} ${p}`).join(', ');
-  document.getElementById('kpiPaisesDetail').textContent = paisesDet;
 }
 
-// Helper para calcular Activos (Ultimos 30 dias) vs Total para los graficos
+// Helper para calcular Activos vs Total para los graficos
 function buildComparatives(data, groupByField, sortMode = 'total_desc') {
-  const cutoff30  = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
   const map = {};
-  
   data.forEach(r => {
     const key = r[groupByField] || 'Sin datos';
-    if (!map[key]) map[key] = { total: 0, active30d: 0 };
+    if (!map[key]) map[key] = { total: 0, active: 0 };
     map[key].total++;
     
-    if (r._parsed_login && !r._parsed_login.startsWith('1970-01-01')) {
-      if (new Date(r._parsed_login) >= cutoff30) {
-        map[key].active30d++;
-      }
+    if ((r.total_interacciones > 0) || (r.tipo_de_usuario && r.tipo_de_usuario !== '0 (inactive)')) {
+      map[key].active++;
     }
   });
   
@@ -809,8 +783,8 @@ function buildComparatives(data, groupByField, sortMode = 'total_desc') {
     
     const totA = a[1].total;
     const totB = b[1].total;
-    const pctA = totA > 0 ? (a[1].active30d / totA) : 0;
-    const pctB = totB > 0 ? (b[1].active30d / totB) : 0;
+    const pctA = totA > 0 ? (a[1].active / totA) : 0;
+    const pctB = totB > 0 ? (b[1].active / totB) : 0;
 
     if (sortMode === 'activos_desc') {
         if (pctA !== pctB) return pctB - pctA;
@@ -824,6 +798,24 @@ function buildComparatives(data, groupByField, sortMode = 'total_desc') {
   });
 }
 
+function buildCounts(data, groupByField) {
+  const map = {};
+  data.forEach(r => {
+    const key = r[groupByField] || 'Sin datos';
+    map[key] = (map[key] || 0) + 1;
+  });
+  return Object.entries(map).sort((a,b) => b[1] - a[1]);
+}
+
+function buildSums(data, groupByField, sumField) {
+  const map = {};
+  data.forEach(r => {
+    const key = r[groupByField] || 'Sin datos';
+    map[key] = (map[key] || 0) + (Number(r[sumField]) || 0);
+  });
+  return Object.entries(map).sort((a,b) => b[1] - a[1]);
+}
+
 // ─── CHARTS ───────────────────────────────────────────────────────────────────
 const PALETTE = ['#0284c7','#059669','#d97706','#7c3aed','#dc2626','#0891b2','#d946ef','#f97316','#84cc16','#6366f1'];
 
@@ -835,125 +827,31 @@ function buildCharts(data) {
 
   // 1. Gerencia Corporativa
   const corpRaw = buildComparatives(data, 'Gerencia Corporativa', sortMode === 'default' ? 'total_desc' : sortMode);
-  const corpSorted = corpRaw.filter(e => e[0] !== 'Sin datos');
-  const corpSd = corpRaw.find(e => e[0] === 'Sin datos');
-  if (corpSd) corpSorted.push(corpSd);
-
-  document.getElementById('chartCorp').parentElement.style.height = Math.max(300, corpSorted.length * 28) + 'px';
-  charts.corp = makeComparativeBar('chartCorp', corpSorted.map(e=>e[0].replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,35)), corpSorted.map(e=>e[1].total), corpSorted.map(e=>e[1].active30d), true);
+  charts.corp = makeComparativeBar('chartCorp', corpRaw.map(e=>e[0].replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,35)), corpRaw.map(e=>e[1].total), corpRaw.map(e=>e[1].active), true);
 
   // 2. Gerencia Principal
   const prinRaw = buildComparatives(data, 'Gerencia Principal', sortMode === 'default' ? 'total_desc' : sortMode);
-  let prinSorted = [];
-  if (sortMode === 'default') {
-    const GERENCIAS_ORDER = [
-      "Gerencia Operaciones Regional",
-      "Gerencia de Administracion",
-      "Gerencia de Estrategia y Performance",
-      "Gerencia de Marketing & Experiencia",
-      "Gerencia de Proyectos y Construccion",
-      "Gerencia Regional de Tecnologia",
-      "Gerencia de Finanzas y Relaciones con Inversionista",
-      "Subgerencia Auditoria Interna",
-      "Direccion Digital Product y Nuevos Negocios",
-      "Direccion de Compensaciones y Diseño Organizacional",
-      "Gerencia Expansion y Brownfield",
-      "Gerencia de Expansion Brownfield y Grandes Superficies",
-      "Gerencia Comercial Chile",
-      "Gerencia Legal Chile y Peru",
-      "Gerencia de Comunicaciones y Sostenibilidad",
-      "Gerencia Comercial Colombia",
-      "Direccion Riesgo y Cumplimiento",
-      "Subgerencia Cultura y Experiencia",
-      "Subgerencia Cultura y HRBP",
-      "Subgerencia Auditoria de Proyectos y Operaciones",
-      "Gerencia Comercial Peru",
-      "Subgerencia Planificacion Comercial",
-      "Direccion de Talento",
-      "Direccion Omnichannel Fulfillment Solutions",
-      "Direccion Omnichannel & Digital Sales",
-      "Gerencia Divisional Chile y Colombia",
-      "Subgerencia Legal Colombia",
-      "Gerencia de Desarrollo y Portafolio",
-      "Gerencia de Desarrollo"
-    ];
-    GERENCIAS_ORDER.forEach(k => { const f = prinRaw.find(e=>e[0]===k); if(f) prinSorted.push(f); });
-    prinRaw.forEach(e => { if(!GERENCIAS_ORDER.includes(e[0]) && e[0] !== 'Sin datos') prinSorted.push(e); });
-  } else {
-    prinSorted = prinRaw.filter(e => e[0] !== 'Sin datos');
-  }
-  const prinSd = prinRaw.find(e => e[0] === 'Sin datos');
-  if (prinSd) prinSorted.push(prinSd);
-
-  document.getElementById('chartPrin').parentElement.style.height = Math.max(300, prinSorted.length * 28) + 'px';
-  charts.prin = makeComparativeBar('chartPrin', prinSorted.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), prinSorted.map(e=>e[1].total), prinSorted.map(e=>e[1].active30d), true);
+  charts.prin = makeComparativeBar('chartPrin', prinRaw.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), prinRaw.map(e=>e[1].total), prinRaw.map(e=>e[1].active), true);
 
   // 3. Subgerencia N3
-  const subn3Raw = buildComparatives(data, 'Gerencia / Subgerencia N3', sortMode === 'default' ? 'total_desc' : sortMode);
-  const subn3Sorted = subn3Raw.filter(e => e[0] !== 'Sin datos');
-  const subn3Sd = subn3Raw.find(e => e[0] === 'Sin datos');
-  if (subn3Sd) subn3Sorted.push(subn3Sd);
+  const subn3Raw = buildComparatives(data, 'Gerencia /subgerencia N3', sortMode === 'default' ? 'total_desc' : sortMode);
+  charts.subn3 = makeComparativeBar('chartSubn3', subn3Raw.map(e=>e[0].slice(0,35)), subn3Raw.map(e=>e[1].total), subn3Raw.map(e=>e[1].active), true);
 
-  document.getElementById('chartSubn3').parentElement.style.height = Math.max(300, subn3Sorted.length * 28) + 'px';
-  charts.subn3 = makeComparativeBar('chartSubn3', subn3Sorted.map(e=>e[0].slice(0,35)), subn3Sorted.map(e=>e[1].total), subn3Sorted.map(e=>e[1].active30d), true);
+  // ROW 2: Tipo Usuario (Doughnut)
+  const tipoUsr = buildCounts(data, 'tipo_de_usuario');
+  charts.tipoUsuario = makeDoughnut('chartTipoUsuario', tipoUsr.map(e=>e[0]), tipoUsr.map(e=>e[1]), ['#059669','#0284c7','#d97706','#dc2626']);
 
-  // Familia
-  const FAM_ORDER = ['Top Management','Middle Management','Junior Management','Especialista/ Profesional','Especialista/ Profesional Digital','Tecnico/ Vendedor','Administrativo'];
-  const famRaw = buildComparatives(data, 'Familia de cargo');
-  const famSorted = [];
-  FAM_ORDER.forEach(k => {
-    const found = famRaw.find(e => e[0] === k);
-    if(found) famSorted.push(found);
-  });
-  // Add 'Sin datos' at the end if present
-  const sdFam = famRaw.find(e => e[0] === 'Sin datos');
-  if(sdFam) famSorted.push(sdFam);
+  // ROW 2: Perfil Uso (Doughnut)
+  const perfilUso = buildCounts(data, 'perfil_uso_complejidad');
+  charts.perfilUso = makeDoughnut('chartPerfilUso', perfilUso.map(e=>e[0]), perfilUso.map(e=>e[1]), ['#7c3aed','#f97316','#0891b2','#d946ef']);
 
-  charts.familia = makeComparativeBar('chartFamilia', 
-    famSorted.map(e=>e[0].slice(0,25)), 
-    famSorted.map(e=>e[1].total), 
-    famSorted.map(e=>e[1].active30d),
-    true
-  );
+  // ROW 3: Generacion (Comparative Bar)
+  const genRaw = buildComparatives(data, 'Generacion');
+  charts.generacion = makeComparativeBar('chartGeneracion', genRaw.map(e=>e[0]), genRaw.map(e=>e[1].total), genRaw.map(e=>e[1].active), false);
 
-  // Antigüedad
-  const ANT_ORDER = ['< 6 meses','< 1 año','1 - 3 años','3 - 5 años','5 - 10 años','> 10 años'];
-  const antRaw = buildComparatives(data, 'Antiguedad');
-  // Re-sort Antigüedad based on chronological logic if present, else keep totals
-  const antSorted = [];
-  ANT_ORDER.forEach(k => {
-    const found = antRaw.find(e => e[0] === k);
-    if(found) antSorted.push(found);
-  });
-  // Add any missing ones at end
-  antRaw.forEach(e => { if(!ANT_ORDER.includes(e[0])) antSorted.push(e); });
-  
-  charts.antiguedad = makeComparativeBar('chartAntiguedad', 
-    antSorted.map(e=>e[0]), 
-    antSorted.map(e=>e[1].total), 
-    antSorted.map(e=>e[1].active30d),
-    true
-  );
-
-  // País (Horizontal Bars as requested)
-  const paisSorted = buildComparatives(data, 'Pais');
-  charts.pais = makeComparativeBar('chartPais', 
-    paisSorted.map(e=>e[0]), 
-    paisSorted.map(e=>e[1].total), 
-    paisSorted.map(e=>e[1].active30d),
-    true // Horizontal
-  );
-
-  // Login timeline
-  const loginMap = {};
-  data.forEach(r => {
-    if (!r._parsed_login) return;
-    const d = r._parsed_login.slice(0,10);
-    if (d === '1970-01-01') return;
-    loginMap[d] = (loginMap[d]||0)+1;
-  });
-  const loginDates = Object.keys(loginMap).sort().slice(-30);
-  charts.login = makeLine('chartLogin', loginDates, loginDates.map(d=>loginMap[d]));
+  // ROW 3: Horas Familias (Line Area Chart as approximation)
+  const horasFam = buildSums(data, 'Familia de Cargo', 'total_horas_ahorradas');
+  charts.horasFam = makeLine('chartHorasFamilia', horasFam.map(e=>e[0].slice(0,20)), horasFam.map(e=>Math.round(e[1])));
 }
 
 function makeComparativeBar(id, labels, totalVals, activeVals, horizontal) {
@@ -1070,7 +968,7 @@ function renderTable(data) {
   document.getElementById('tableCount').textContent = `${data.length} registros`;
 
   if (data.length === 0 && allData.length > 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Sin resultados para los filtros aplicados</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted)">Sin resultados para los filtros aplicados</td></tr>`;
     document.getElementById('paginationInfo').textContent = '';
     document.getElementById('pageBtns').innerHTML = '';
     return;
@@ -1079,35 +977,18 @@ function renderTable(data) {
   tbody.innerHTML = page.map(r => {
     const flag = flagMap[r['Pais']] || '🌐';
     
-    // Logica de formateo de fecha (de ISO 8601 a DD/MM/YYYY)
-    const is1970 = r._parsed_login && r._parsed_login.startsWith('1970-01-01');
-    let login = '—';
-    if (r.last_login && !is1970) {
-      if (r.last_login.includes('T') || r.last_login.includes(' ')) {
-        const sep = r.last_login.includes('T') ? 'T' : ' ';
-        const datePart = r.last_login.split(sep)[0];
-        // Si tiene formato ISO YYYY-MM-DD lo reformateamos a DD/MM/YYYY
-        if (datePart.includes('-')) {
-          const parts = datePart.split('-');
-          login = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        } else {
-          login = datePart;
-        }
-      } else {
-        login = r.last_login;
-      }
-    }
-    
     return `<tr>
-      <td>${r['Nombre'] || '—'}</td>
-      <td style="font-size:12px;color:var(--text-muted)">${r.email || '—'}</td>
+      <td>${r['Nombre Completo'] || '—'}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${r['Correo'] || '—'}</td>
       <td>${flag} ${r['Pais'] || '—'}</td>
       <td style="font-size:12px">${(r['Gerencia Corporativa'] || '—').replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,30)}</td>
       <td>${(r['Gerencia Principal'] || '—').replace('Gerencia ','Ger. ').slice(0,30)}</td>
-      <td style="font-size:12px">${(r['Gerencia / Subgerencia N3'] || '—').slice(0,35)}</td>
-      <td><strong>${login}</strong></td>
-      <td style="font-size:12px">${(r['Familia de cargo'] || '—').slice(0,25)}</td>
-      <td style="font-size:12px">${r['Antiguedad'] || '—'}</td>
+      <td style="font-size:12px">${(r['Familia de Cargo'] || '—').slice(0,25)}</td>
+      <td>${r['Generacion'] || '—'}</td>
+      <td>${r['perfil_uso_complejidad'] || '—'}</td>
+      <td style="font-weight:600;color:var(--accent1)">${r['total_interacciones'] || 0}</td>
+      <td>${r['tipo_de_usuario'] || '—'}</td>
+      <td style="font-weight:600;color:var(--accent2)">${r['total_horas_ahorradas'] || 0}</td>
     </tr>`;
   }).join('');
 
@@ -1138,30 +1019,26 @@ function renderTable(data) {
 function updateInsights(data) {
   if (!data || data.length === 0) return;
   const total = data.length;
-  const now = new Date();
-  const d30 = new Date(); d30.setDate(d30.getDate() - 30);
-  const d90 = new Date(); d90.setDate(d90.getDate() - 90);
-  const d365 = new Date(); d365.setDate(d365.getDate() - 365);
 
-  const active30 = data.filter(r => r._parsed_login && new Date(r._parsed_login) >= d30).length;
-  const inactive = data.filter(r => r._parsed_login && new Date(r._parsed_login) < d30 && new Date(r._parsed_login) >= d365 && !r._parsed_login.startsWith('1970-01-01')).length;
-  const never = data.filter(r => !r._parsed_login || r._parsed_login.startsWith('1970-01-01')).length;
+  const active30 = data.filter(r => r.total_interacciones > 0).length;
+  const inactive = data.filter(r => r.total_interacciones === 0).length;
+  const never = 0; // Ahora agrupado en inactivos por falta de fecha exacta histórica
 
   document.getElementById('insKpiActive').textContent = active30;
   document.getElementById('insKpiActivePct').textContent = `${Math.round(active30/total*100)}% del total`;
   document.getElementById('insKpiInactive').textContent = inactive;
   document.getElementById('insKpiInactivePct').textContent = `${Math.round(inactive/total*100)}% del total`;
   document.getElementById('insKpiNever').textContent = never;
-  document.getElementById('insKpiNeverPct').textContent = `${Math.round(never/total*100)}% del total`;
+  document.getElementById('insKpiNeverPct').textContent = `0%`; // Eliminado
 
   // 2. Alert Box
   const alertBox = document.getElementById('insAlertBox');
   const alertText = document.getElementById('insAlertText');
-  const criticalInactive = data.filter(r => !r._parsed_login || new Date(r._parsed_login) < d30).length;
+  const criticalInactive = inactive;
   const critPct = Math.round(criticalInactive/total*100);
 
   const mgmtMap = {};
-  data.filter(r => !r._parsed_login || new Date(r._parsed_login) < d30).forEach(r => {
+  data.filter(r => r.total_interacciones === 0).forEach(r => {
     const g = r['Gerencia Principal'] || 'Otras';
     mgmtMap[g] = (mgmtMap[g]||0)+1;
   });
@@ -1170,32 +1047,37 @@ function updateInsights(data) {
 
   if (critPct > 35) {
     alertBox.style.display = 'flex';
-    alertText.innerHTML = `<strong>Riesgo de adopción crítico:</strong> ${criticalInactive} usuarios (${critPct}%) no han usado Gemini en los últimos 30 días. De ellos, ${never} nunca han accedido. La mayor concentración está en <strong>${worstMgmt?worstMgmt[0]:'N/A'}</strong>.`;
+    alertText.innerHTML = `<strong>Riesgo de adopción crítico:</strong> ${criticalInactive} usuarios (${critPct}%) tienen 0 interacciones totales. La mayor concentración está en <strong>${worstMgmt?worstMgmt[0]:'N/A'}</strong>.`;
   } else {
     alertBox.style.display = 'none';
   }
 
-  // 3. Timeline
+  // 3. Timeline / Tipos de Usuario
+  const t1 = data.filter(r => r.tipo_de_usuario === '+300 interacciones (top user)').length;
+  const t2 = data.filter(r => r.tipo_de_usuario === 'entre 299 y 50 (regular user)').length;
+  const t3 = data.filter(r => r.tipo_de_usuario === 'entre 49 y 1 (low user)').length;
+  
   const timeline = [
-    { label: '0 – 7 días', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) >= new Date().setDate(now.getDate()-7) && !r._parsed_login.startsWith('1970-01-01')).length, color: '#059669' },
-    { label: '8 – 30 días', count: active30 - data.filter(r => r._parsed_login && new Date(r._parsed_login) >= new Date().setDate(now.getDate()-7) && !r._parsed_login.startsWith('1970-01-01')).length, color: '#0284c7' },
-    { label: '31 – 90 días', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) < d30 && new Date(r._parsed_login) >= d90 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#d97706' },
-    { label: '91 días – 1 año', count: data.filter(r => r._parsed_login && new Date(r._parsed_login) < d90 && new Date(r._parsed_login) >= d365 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#dc2626' },
-    { label: 'Nunca / +1 año', count: never + data.filter(r => r._parsed_login && new Date(r._parsed_login) < d365 && !r._parsed_login.startsWith('1970-01-01')).length, color: '#991b1b' }
+    { label: 'Top User (+300)', count: t1, color: '#059669' },
+    { label: 'Regular User (50-299)', count: t2, color: '#0284c7' },
+    { label: 'Low User (1-49)', count: t3, color: '#d97706' },
+    { label: 'Inactive (0)', count: inactive, color: '#dc2626' }
   ];
-  document.getElementById('insAccessTimeline').innerHTML = timeline.map(t => `<div class="bar-row"><div class="bar-lbl w160">${t.label}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(t.count/total*100)}%;background:${t.color}"><span>${t.count}</span></div></div></div>`).join('');
+  document.getElementById('insAccessTimeline').innerHTML = timeline.map(t => `<div class="bar-row"><div class="bar-lbl w160">${t.label}</div><div class="bar-track"><div class="bar-fill" style="width:${total ? Math.round(t.count/total*100) : 0}%;background:${t.color}"><span>${t.count}</span></div></div></div>`).join('');
 
   // 4. Countries
   const countryColors = { 'Peru': '#0284c7', 'Chile': '#059669', 'Colombia': '#d97706' };
   const countries = [...new Set(data.map(r => r['Pais']).filter(Boolean))].sort();
   const countryAdoption = countries.map(c => {
     const totalC = data.filter(r => r['Pais'] === c).length;
-    const activeC = data.filter(r => r['Pais'] === c && r._parsed_login && new Date(r._parsed_login) >= d30).length;
-    return { name: c, pct: Math.round(activeC/totalC*100), count: activeC, total: totalC };
+    const activeC = data.filter(r => r['Pais'] === c && r.total_interacciones > 0).length;
+    return { name: c, pct: totalC ? Math.round(activeC/totalC*100) : 0, count: activeC, total: totalC };
   }).sort((a,b)=>b.pct-a.pct);
   document.getElementById('insCountryAdoption').innerHTML = countryAdoption.map(c => `<div class="bar-row"><div class="bar-lbl w100">${c.name}</div><div class="bar-track"><div class="bar-fill" style="width:${c.pct}%;background:${countryColors[c.name]||'#64748b'}"><span>${c.pct}% — ${c.count}/${c.total}</span></div></div></div>`).join('');
-  if (countryAdoption.length > 0) {
-    document.getElementById('insCountryNote').textContent = `⚡ ${countryAdoption[0].name} tiene la mayor tasa de adopción (${countryAdoption[0].pct}%). Replicar su modelo en los demás países.`;
+  if (countryAdoption.length > 0 && countryAdoption[0].pct > 0) {
+    document.getElementById('insCountryNote').textContent = `⚡ ${countryAdoption[0].name} tiene la mayor tasa de adopción de uso (${countryAdoption[0].pct}%). Replicar su modelo en los demás países.`;
+  } else if (countryAdoption.length > 0) {
+    document.getElementById('insCountryNote').textContent = `⚠️ No se han detectado adopciones todavía.`;
   }
 
   // 5. Family (Colores fijos por nombre de la versión anterior)
@@ -1210,11 +1092,11 @@ function updateInsights(data) {
     'Técnico/ Vendedor': '#991b1b',
     'Sin datos': '#64748b'
   };
-  const families = [...new Set(data.map(r => r['Familia de cargo']).filter(Boolean))];
+  const families = [...new Set(data.map(r => r['Familia de Cargo']).filter(Boolean))];
   const familyAdoption = families.map(f => {
-    const totalF = data.filter(r => r['Familia de cargo'] === f).length;
-    const activeF = data.filter(r => r['Familia de cargo'] === f && r._parsed_login && new Date(r._parsed_login) >= d30).length;
-    return { name: f, pct: Math.round(activeF/totalF*100), active: activeF, total: totalF };
+    const totalF = data.filter(r => r['Familia de Cargo'] === f).length;
+    const activeF = data.filter(r => r['Familia de Cargo'] === f && r.total_interacciones > 0).length;
+    return { name: f, pct: totalF ? Math.round(activeF/totalF*100) : 0, active: activeF, total: totalF };
   }).sort((a,b)=>b.pct-a.pct);
 
   document.getElementById('insFamilyAdoption').innerHTML = familyAdoption.map((f, i) => {
@@ -1235,7 +1117,7 @@ function updateInsights(data) {
   const mgmts = [...new Set(data.map(r => r['Gerencia Principal']).filter(Boolean))];
   const mgmtComp = mgmts.map(g => {
     const totalG = data.filter(r => r['Gerencia Principal'] === g).length;
-    const activeG = data.filter(r => r['Gerencia Principal'] === g && r._parsed_login && new Date(r._parsed_login) >= d30).length;
+    const activeG = data.filter(r => r['Gerencia Principal'] === g && r.total_interacciones > 0).length;
     return { name: g, pct: totalG > 5 ? Math.round(activeG/totalG*100) : 0, total: totalG, active: activeG };
   }).sort((a,b)=>b.pct-a.pct);
 
@@ -1253,7 +1135,7 @@ function updateInsights(data) {
   }).join('');
 
   // 7. Inactive by Management
-  const inactiveMgmt = mgmts.map(g => ({ name: g, count: data.filter(r => r['Gerencia Principal'] === g && (!r._parsed_login || new Date(r._parsed_login) < d90)).length }))
+  const inactiveMgmt = mgmts.map(g => ({ name: g, count: data.filter(r => r['Gerencia Principal'] === g && r.total_interacciones === 0).length }))
     .sort((a,b)=>b.count-a.count)
     .slice(0, 6); // Aumentamos a 6 para llenar mejor el grid
   
