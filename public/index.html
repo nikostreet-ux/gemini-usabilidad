@@ -833,6 +833,9 @@ function buildCharts(data) {
   charts.prin = makeComparativeBar('chartPrin', prinRaw.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), prinRaw.map(e=>e[1].total), prinRaw.map(e=>e[1].active), true);
 
   // 3. Subgerencia N3
+  const subn3Raw = buildComparatives(data, 'Gerencia /subgerencia N3', sortMode === 'default' ? 'total_desc' : sortMode);
+  charts.subn3 = makeComparativeBar('chartSubn3', subn3Raw.map(e=>e[0].slice(0,35)), subn3Raw.map(e=>e[1].total), subn3Raw.map(e=>e[1].active), true);
+
   // ─── Ajuste dinámico de altura para Usuarios por Área ───────────────────
   const chartAreaContainer = document.querySelector('#chartWrap-corp > div:first-child');
   if (chartAreaContainer) chartAreaContainer.style.height = Math.max(300, corpRaw.length * 28) + 'px';
