@@ -3,19 +3,13 @@ export const config = {
 };
 
 export default function middleware(request) {
-  // Autenticación pausada a petición
-  return new Response(null, {
-    headers: { 'x-middleware-next': '1' }
-  });
-
-  /*
   const authorizationHeader = request.headers.get('authorization');
 
   if (authorizationHeader) {
     const basicAuth = authorizationHeader.split(' ')[1];
     const [user, password] = atob(basicAuth).split(':');
 
-    if (user === 'admin' && password === 'mallplaza2026') {
+    if (user === 'admin' && password === 'gemini.2026') {
       return new Response(null, {
         headers: { 'x-middleware-next': '1' }
       });
@@ -25,8 +19,7 @@ export default function middleware(request) {
   return new Response('Autenticación requerida', {
     status: 401,
     headers: {
-      'WWW-Authenticate': 'Basic realm="Acceso Seguro Dashboard Usabilidad"',
+      'WWW-Authenticate': 'Basic realm="Acceso Seguro Dashboard"',
     },
   });
-  */
 }

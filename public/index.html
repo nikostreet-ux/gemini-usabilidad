@@ -1012,14 +1012,28 @@ function makeTreemap(id, dataArr) {
         backgroundColor: (ctx2) => {
           if (ctx2.type !== 'data' || !dataArr[0]) return 'transparent';
           const maxVal = dataArr[0].value; 
-          const alpha = 0.2 + 0.8 * (ctx2.raw.v / maxVal);
+          const alpha = 0.55 + 0.45 * (ctx2.raw.v / maxVal);
           return `rgba(2, 132, 199, ${alpha})`;
         },
         labels: {
           display: true,
-          color: '#fff',
+          color: '#ffffff',
           font: { weight: 'bold', size: 10 },
-          formatter: (ctx2) => [ctx2.raw.g, ctx2.raw.v + ' hrs']
+          formatter: (ctx2) => {
+             let words = ctx2.raw.g.split(' ');
+             let lines = [];
+             let currentLine = '';
+             for(let word of words) {
+                 if ((currentLine + word).length > 24) {
+                     if (currentLine) lines.push(currentLine.trim());
+                     currentLine = word + ' ';
+                 } else {
+                     currentLine += word + ' ';
+                 }
+             }
+             if (currentLine) lines.push(currentLine.trim());
+             return [...lines, ctx2.raw.v + ' hrs'];
+          }
         }
       }]
     },
