@@ -307,7 +307,7 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
         <div>
           <div class="chart-title">Usuarios por Área</div>
-          <div class="chart-subtitle" style="margin-bottom:0">Activos vs. Inactivos (Últimos 30 Días)</div>
+          <div class="chart-subtitle" style="margin-bottom:0">Activos vs. Inactivos (Global)</div>
         </div>
         <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <select id="sortChartArea" class="filter-select" style="font-size:11px; padding:6px 10px; min-width:140px; border-radius:6px; height:30px;" onchange="applyFilters()">
@@ -431,7 +431,7 @@
       </div>
     </div>
     <div class="ins-card">
-      <div class="ins-card-title">Adopción por país (últimos 30 días)</div>
+      <div class="ins-card-title">Adopción por país</div>
       <div class="ins-card-sub">% de usuarios activos sobre total por país</div>
       <div id="insCountryAdoption">
         <!-- Generado dinámicamente -->
@@ -442,15 +442,15 @@
 
   <div class="ins-charts-row">
     <div class="ins-card">
-      <div class="ins-card-title">Adopción por familia de cargo (últimos 30 días)</div>
-      <div class="ins-card-sub">% con login en los últimos 30 días por nivel jerárquico</div>
+      <div class="ins-card-title">Adopción por familia de cargo</div>
+      <div class="ins-card-sub">% con interacciones por nivel jerárquico</div>
       <div id="insFamilyAdoption">
         <!-- Generado dinámicamente -->
       </div>
     </div>
     <div class="ins-card">
-      <div class="ins-card-title">Adopción por gerencia (últimos 30 días)</div>
-      <div class="ins-card-sub">Gerencias con ≥10 usuarios — % activos 30 días</div>
+      <div class="ins-card-title">Adopción por gerencia</div>
+      <div class="ins-card-sub">Gerencias con ≥10 usuarios — % activos</div>
       <div id="insMgmtAdoption">
         <!-- Generado dinámicamente -->
       </div>
@@ -833,75 +833,73 @@ function buildCharts(data) {
   charts.prin = makeComparativeBar('chartPrin', prinRaw.map(e=>e[0].replace('Gerencia ','Ger. ').slice(0,35)), prinRaw.map(e=>e[1].total), prinRaw.map(e=>e[1].active), true);
 
   // 3. Subgerencia N3
-  const subn3Raw = buildComparatives(data, 'Gerencia /subgerencia N3', sortMode === 'default' ? 'total_desc' : sortMode);
-  charts.subn3 = makeComparativeBar('chartSubn3', subn3Raw.map(e=>e[0].slice(0,35)), subn3Raw.map(e=>e[1].total), subn3Raw.map(e=>e[1].active), true);
+  // ─── Ajuste dinámico de altura para Usuarios por Área ───────────────────
+  const chartAreaContainer = document.querySelector('#chartWrap-corp > div:first-child');
+  if (chartAreaContainer) chartAreaContainer.style.height = Math.max(300, corpRaw.length * 28) + 'px';
+  const chartPrinContainer = document.querySelector('#chartWrap-prin > div:first-child');
+  if (chartPrinContainer) chartPrinContainer.style.height = Math.max(300, prinRaw.length * 28) + 'px';
+  const chartSubContainer = document.querySelector('#chartWrap-subn3 > div:first-child');
+  if (chartSubContainer) chartSubContainer.style.height = Math.max(300, subn3Raw.length * 28) + 'px';
 
-  // ROW 2: Tipo Usuario (Stacked Horizontal Bar)
-  const TIPO_ORDER = ['+300 interacciones (top user)', 'entre 299 y 50 (regular user)', 'entre 49 y 1 (low user)', '0 (inactive)'];
-  const TIPO_LABELS = ['Top User (+300)', 'Regular (50-299)', 'Low (1-49)', 'Inactive (0)'];
-  const TIPO_COLORS = ['#059669', '#0284c7', '#d97706', '#dc2626'];
-  const tipoCounts = TIPO_ORDER.map(k => data.filter(r => r.tipo_de_usuario === k).length);
-  charts.tipoUsuario = makeStackedBar('chartTipoUsuario', TIPO_LABELS, tipoCounts, TIPO_COLORS);
+  // ROW 2: Tipo Usuario (Doughnut en %)
+  const tipoRaw = buildCounts(data, 'tipo_de_usuario');
+  charts.tipoUsuario = makePercentDoughnut('chartTipoUsuario', tipoRaw.map(e=>e[0]), tipoRaw.map(e=>e[1]), ['#059669','#0284c7','#d97706','#dc2626']);
 
-  // ROW 2: Perfil Uso (Radar / Spider)
-  const perfilRaw = buildCounts(data, 'perfil_uso_complejidad').filter(e => e[0] !== 'Sin datos');
+  // ROW 2: Perfil Uso (Radar / Spider en %)
+  const perfilRaw = buildCounts(data, 'perfil_uso_complejidad')
+    .filter(e => e[0] !== 'Sin datos' && e[0].toLowerCase() !== 'sin licencia asignada');
   charts.perfilUso = makeRadar('chartPerfilUso', perfilRaw.map(e=>e[0]), perfilRaw.map(e=>e[1]));
 
   // ROW 3: Generacion (Comparative Bar)
   const genRaw = buildComparatives(data, 'Generacion');
   charts.generacion = makeComparativeBar('chartGeneracion', genRaw.map(e=>e[0]), genRaw.map(e=>e[1].total), genRaw.map(e=>e[1].active), false);
 
-  // ROW 3: Horas Familias (Bar horizontal)
+  // ROW 3: Horas Familias (Bar horizontal con más separación)
   const horasFam = buildSums(data, 'Familia de Cargo', 'total_horas_ahorradas').filter(e=>e[0]!=='Sin datos');
+  const chartHorasContainer = document.getElementById('chartHorasFamilia').parentElement;
+  if(chartHorasContainer) chartHorasContainer.style.height = Math.max(260, horasFam.length * 35) + 'px';
   charts.horasFam = makeHorasBar('chartHorasFamilia', horasFam.map(e=>e[0].slice(0,25)), horasFam.map(e=>Math.round(e[1])));
 }
 
-// ─── Stacked Bar (Tipo Usuario) ─────────────────────────────────────────────
-function makeStackedBar(id, labels, counts, colors) {
+// ─── Doughnut (Porcentajes puros) ───────────────────────────────────────────
+function makePercentDoughnut(id, labels, dataArr, colors) {
   const ctx = document.getElementById(id);
   if (!ctx) return null;
-  const total = counts.reduce((a,b)=>a+b,0);
+  const total = dataArr.reduce((a,b)=>a+b, 0);
   return new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
-      labels: ['Distribución de Usuarios'],
-      datasets: labels.map((lbl, i) => ({
-        label: lbl,
-        data: [counts[i]],
-        backgroundColor: colors[i],
-        borderWidth: 0,
-        barPercentage: 0.7
-      }))
+      labels,
+      datasets: [{
+        data: dataArr,
+        backgroundColor: colors || ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
     },
     options: {
-      indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '65%',
       plugins: {
-        legend: { position: 'top', labels: { font: { size: 11 }, color: '#64748b', usePointStyle: true, boxWidth: 8 } },
+        legend: { position: 'right', labels: { usePointStyle: true, font: { size: 11 }, padding: 15 } },
         datalabels: {
           color: '#fff',
-          font: { weight: 'bold', size: 11 },
-          display: ctx2 => counts[ctx2.datasetIndex] > 0,
-          formatter: (val, ctx2) => {
-            const c = counts[ctx2.datasetIndex];
-            return c > 0 ? `${c}\n(${total ? Math.round(c/total*100) : 0}%)` : '';
-          }
+          font: { weight: 'bold', size: 12 },
+          formatter: (v) => total > 0 ? Math.round(v/total*100) + '%' : '',
+          display: (ctx2) => ctx2.dataset.data[ctx2.dataIndex] > total * 0.05
         },
-        tooltip: { callbacks: { label: ctx2 => `${ctx2.dataset.label}: ${counts[ctx2.datasetIndex]} usuarios` } }
-      },
-      scales: {
-        x: { stacked: true, ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
-        y: { stacked: true, display: false }
+        tooltip: { callbacks: { label: ctx2 => ` ${ctx2.formattedValue} usuarios (${total>0 ? Math.round(ctx2.raw/total*100):0}%)` } }
       }
     }
   });
 }
 
-// ─── Radar / Spider (Perfil Uso) ───────────────────────────────────────────
+// ─── Radar / Spider (Perfil Uso porcentaje) ───────────────────────────────────────────
 function makeRadar(id, labels, values) {
   const ctx = document.getElementById(id);
   if (!ctx) return null;
+  const total = values.reduce((a,b)=>a+b, 0);
   return new Chart(ctx, {
     type: 'radar',
     data: {
@@ -913,7 +911,7 @@ function makeRadar(id, labels, values) {
         borderColor: '#7c3aed',
         borderWidth: 2,
         pointBackgroundColor: '#7c3aed',
-        pointRadius: 5
+        pointRadius: 4
       }]
     },
     options: {
@@ -921,12 +919,18 @@ function makeRadar(id, labels, values) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        datalabels: { display: false }
+        datalabels: {
+          color: '#475569',
+          font: { weight: 'bold', size: 10 },
+          align: 'end',
+          formatter: v => total > 0 ? Math.round(v/total*100) + '%' : ''
+        },
+        tooltip: { callbacks: { label: ctx2 => `${ctx2.raw} usuarios (${total>0 ? Math.round(ctx2.raw/total*100):0}%)` } }
       },
       scales: {
         r: {
           beginAtZero: true,
-          ticks: { color: '#64748b', font: { size: 10 }, backdropColor: 'transparent' },
+          ticks: { color: '#64748b', font: { size: 10 }, backdropColor: 'transparent', display: false },
           pointLabels: { color: '#334155', font: { size: 11, weight: '600' } },
           grid: { color: '#e2e8f0' },
           angleLines: { color: '#e2e8f0' }
@@ -1135,8 +1139,14 @@ function updateInsights(data) {
 
   const active  = data.filter(r => r.total_interacciones > 0).length;
   const inactive = data.filter(r => r.total_interacciones === 0).length;
-  const topUsers = data.filter(r => r.tipo_de_usuario === '+300 interacciones (top user)').length;
-  const lowUsers = data.filter(r => r.tipo_de_usuario === 'entre 49 y 1 (low user)').length;
+  
+  // Extraer valores de forma amigable (case-insensitive para evitar que no matcheen)
+  const isTop = t => typeof t === 'string' && (t.toLowerCase().includes('300') || t.toLowerCase().includes('top'));
+  const isLow = t => typeof t === 'string' && (t.toLowerCase().includes('49') || t.toLowerCase().includes('low'));
+  const isRegular = t => typeof t === 'string' && (t.toLowerCase().includes('299') || t.toLowerCase().includes('regular'));
+
+  const topUsers = data.filter(r => isTop(r.tipo_de_usuario)).length;
+  const lowUsers = data.filter(r => isLow(r.tipo_de_usuario)).length;
 
   document.getElementById('insKpiActive').textContent = active;
   document.getElementById('insKpiActivePct').textContent = `${Math.round(active/total*100)}% del total`;
@@ -1172,7 +1182,7 @@ function updateInsights(data) {
 
   // 3. Tipos de Usuario
   const t1 = topUsers;
-  const t2 = data.filter(r => r.tipo_de_usuario === 'entre 299 y 50 (regular user)').length;
+  const t2 = data.filter(r => isRegular(r.tipo_de_usuario)).length;
   const t3 = lowUsers;
   
   const timeline = [
