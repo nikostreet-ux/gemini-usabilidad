@@ -1397,127 +1397,116 @@ function switchTab(tab, btn) {
   else if (tab === 'report' && allData.length > 0) buildReport(allData);
 }
 
-// ─── REPORTE DINÁMICO ────────────────────────────────────────────────────────
+// ─── REPORTE DINÁMICO (NARRATIVO) ───────────────────────────────────────────
 function buildReport(data) {
   const el = document.getElementById('reportContent');
   if (!el || !data || data.length === 0) return;
-  const total   = data.length;
-  const active  = data.filter(r => r.total_interacciones > 0).length;
+
+  const total    = data.length;
+  const active   = data.filter(r => r.total_interacciones > 0).length;
   const inactive = total - active;
   const pctActive = Math.round(active / total * 100);
-  const totalHrs = data.reduce((s, r) => s + (r.total_horas_ahorradas || 0), 0);
-  const totalInt = data.reduce((s, r) => s + (r.total_interacciones || 0), 0);
-  const avgHrsPerActive = active > 0 ? (totalHrs / active).toFixed(1) : 0;
+  const totalHrs  = data.reduce((s, r) => s + (r.total_horas_ahorradas || 0), 0);
+  const totalInt  = data.reduce((s, r) => s + (r.total_interacciones || 0), 0);
+  const avgHrs    = active > 0 ? (totalHrs / active).toFixed(1) : 0;
+  const avgInt    = active > 0 ? Math.round(totalInt / active) : 0;
 
-  // Gerencias Principales
-  const mgmtMap = {};
-  data.forEach(r => {
-    const g = r['Gerencia Principal'] || 'Sin datos';
-    if (!mgmtMap[g]) mgmtMap[g] = { total: 0, active: 0 };
-    mgmtMap[g].total++;
-    if (r.total_interacciones > 0) mgmtMap[g].active++;
-  });
-  const mgmts = Object.entries(mgmtMap)
-    .filter(([k, v]) => k !== 'Sin datos' && v.total >= 3)
-    .map(([name, v]) => ({ name, ...v, pct: Math.round(v.active / v.total * 100) }))
-    .sort((a, b) => b.pct - a.pct);
-  const top3Mgmt   = mgmts.slice(0, 3);
-  const worst3Mgmt = [...mgmts].sort((a, b) => a.pct - b.pct).slice(0, 3);
+  const groupBy = (field, countActive) => {
+    const map = {};
+    data.forEach(r => {
+      const k = r[field] || 'Sin datos';
+      if (!map[k]) map[k] = { total: 0, active: 0 };
+      map[k].total++;
+      if (countActive(r)) map[k].active++;
+    });
+    return Object.entries(map)
+      .filter(([k, v]) => k !== 'Sin datos' && v.total >= 2)
+      .map(([name, v]) => ({ name, ...v, pct: Math.round(v.active / v.total * 100) }))
+      .sort((a, b) => b.pct - a.pct);
+  };
+  const isActive = r => r.total_interacciones > 0;
 
-  // Familias de cargo
-  const famMap = {};
-  data.forEach(r => {
-    const f = r['Familia de Cargo'] || 'Sin datos';
-    if (!famMap[f]) famMap[f] = { total: 0, active: 0 };
-    famMap[f].total++;
-    if (r.total_interacciones > 0) famMap[f].active++;
-  });
-  const fams = Object.entries(famMap)
-    .filter(([k]) => k !== 'Sin datos')
-    .map(([name, v]) => ({ name, ...v, pct: Math.round(v.active / v.total * 100) }))
-    .sort((a, b) => b.pct - a.pct);
+  const mgmts  = groupBy('Gerencia Principal', isActive).filter(g => g.total >= 3);
+  const fams   = groupBy('Familia de Cargo', isActive);
+  const paises = groupBy('Pais', isActive);
 
-  // Por país
-  const paisMap = {};
-  data.forEach(r => {
-    const p = r['Pais'] || 'Sin datos';
-    if (!paisMap[p]) paisMap[p] = { total: 0, active: 0 };
-    paisMap[p].total++;
-    if (r.total_interacciones > 0) paisMap[p].active++;
-  });
-  const paises = Object.entries(paisMap)
-    .filter(([k]) => k !== 'Sin datos')
-    .map(([name, v]) => ({ name, ...v, pct: Math.round(v.active / v.total * 100) }))
-    .sort((a, b) => b.pct - a.pct);
+  const best  = mgmts[0] || { name: 'N/D', pct: 0, active: 0, total: 0 };
+  const worst = [...mgmts].sort((a, b) => a.pct - b.pct)[0] || { name: 'N/D', pct: 0, active: 0, total: 0 };
+  const bestFam  = fams[0] || { name: 'N/D', pct: 0 };
+  const worstFam = fams[fams.length - 1] || { name: 'N/D', pct: 0 };
+  const bestPais  = paises[0] || { name: 'N/D', pct: 0 };
+  const worstPais = paises[paises.length - 1] || { name: 'N/D', pct: 0 };
+  const gapMgmt = best.pct - worst.pct;
+  const famGap  = bestFam.pct - worstFam.pct;
 
-  // Tipo de usuario
-  const tipoMap = {};
-  data.forEach(r => { const t = r['tipo_de_usuario'] || 'Sin datos'; tipoMap[t] = (tipoMap[t]||0)+1; });
-  const tipoEntries = Object.entries(tipoMap).sort((a,b)=>b[1]-a[1]);
+  const topCount = data.filter(r => typeof r.tipo_de_usuario === 'string' && r.tipo_de_usuario.toLowerCase().includes('top')).length;
+  const lowCount = data.filter(r => typeof r.tipo_de_usuario === 'string' && r.tipo_de_usuario.toLowerCase().includes('low')).length;
 
-  const barColor = pct => pct >= 70 ? '#059669' : pct >= 40 ? '#d97706' : '#dc2626';
+  const corpHrsMap = {};
+  data.forEach(r => { const c = r['Gerencia Corporativa']||''; if (c) corpHrsMap[c] = (corpHrsMap[c]||0) + (r.total_horas_ahorradas||0); });
+  const bestCorpHrs = Object.entries(corpHrsMap).sort((a,b)=>b[1]-a[1])[0] || ['N/D', 0];
 
-  el.innerHTML = `
-  <div class="ins-kpi-row" style="margin-bottom:24px;">
-    <div class="ins-kpi"><div class="val green">${active}</div><div class="lbl">Usuarios activos</div><div class="sub">${pctActive}% del total (${total} invitados)</div></div>
-    <div class="ins-kpi"><div class="val red">${inactive}</div><div class="lbl">Usuarios inactivos</div><div class="sub">${Math.round(inactive/total*100)}% sin ninguna interacción</div></div>
-    <div class="ins-kpi"><div class="val purple">${Math.round(totalHrs).toLocaleString()} hrs</div><div class="lbl">Horas ahorradas</div><div class="sub">Prom. ${avgHrsPerActive} hrs por colaborador activo</div></div>
-    <div class="ins-kpi"><div class="val blue">${totalInt.toLocaleString()}</div><div class="lbl">Interacciones totales</div><div class="sub">Promedio ${active>0?Math.round(totalInt/active):0} por usuario activo</div></div>
-  </div>
+  const lvl   = pctActive >= 70 ? 'alto' : pctActive >= 50 ? 'moderado' : pctActive >= 30 ? 'bajo' : 'crítico';
+  const tone  = pctActive >= 70 ? '#059669' : pctActive >= 50 ? '#d97706' : '#dc2626';
 
-  <div class="ins-charts-row" style="margin-bottom:24px;">
-    <div class="ins-card">
-      <div class="ins-card-title">🏆 Top Gerencias por Adopción</div>
-      <div class="ins-card-sub">Gerencias principales con mayor % de usuarios activos (≥3 usuarios)</div>
-      ${top3Mgmt.map(g => `
-        <div class="bar-row">
-          <div class="bar-lbl w160" title="${g.name}">${g.name.replace('Gerencia ','Ger. ').slice(0,26)}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:#059669"><span>${g.pct}% — ${g.active}/${g.total}</span></div></div>
-        </div>`).join('')}
-    </div>
-    <div class="ins-card">
-      <div class="ins-card-title">⚠️ Gerencias con Menor Adopción</div>
-      <div class="ins-card-sub">Requieren atención y plan de activación</div>
-      ${worst3Mgmt.map(g => `
-        <div class="bar-row">
-          <div class="bar-lbl w160" title="${g.name}">${g.name.replace('Gerencia ','Ger. ').slice(0,26)}</div>
-          <div class="bar-track"><div class="bar-fill ${g.pct<20?'short-bar':''}" style="width:${Math.max(g.pct,3)}%;background:#dc2626"><span>${g.pct}% — ${g.active}/${g.total}</span></div></div>
-        </div>`).join('')}
-    </div>
-  </div>
+  const box = (bg, bc, tc, icon, body) =>
+    `<div class="alert-box" style="background:${bg};border-color:${bc};margin:14px 0;"><div class="alert-icon">${icon}</div><div class="alert-text" style="color:${tc};font-size:13px;">${body}</div></div>`;
+  const h3 = (n, ico, t) =>
+    `<h3 style="font-size:15px;font-weight:700;margin:28px 0 8px;display:flex;align-items:center;gap:7px;">${ico} ${n}. ${t}</h3>`;
+  const badge = (label, color, bg) =>
+    `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${bg};color:${color};margin-left:6px;vertical-align:middle">${label}</span>`;
 
-  <div class="ins-charts-row" style="margin-bottom:28px;">
-    <div class="ins-card">
-      <div class="ins-card-title">👤 Adopción por Familia de Cargo</div>
-      <div class="ins-card-sub">% de usuarios activos por nivel jerárquico</div>
-      ${fams.map(f => {
-        const clr = barColor(f.pct); const short = f.pct < 20;
-        return `<div class="bar-row">
-          <div class="bar-lbl w160">${f.name.slice(0,26)}</div>
-          <div class="bar-track"><div class="bar-fill ${short?'short-bar':''}" style="width:${Math.max(f.pct,2)}%;background:${clr}"><span>${f.pct}% — ${f.active}/${f.total}</span></div></div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div class="ins-card">
-      <div class="ins-card-title">🌎 Adopción por País</div>
-      <div class="ins-card-sub">% de usuarios activos sobre total por país</div>
-      ${paises.map(p => `
-        <div class="bar-row">
-          <div class="bar-lbl w100">${p.name}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${p.pct}%;background:${barColor(p.pct)}"><span>${p.pct}% — ${p.active}/${p.total}</span></div></div>
-        </div>`).join('')}
-      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 12px">
-      <div class="ins-card-title" style="margin-bottom:8px;">🔖 Distribución por Tipo de Usuario</div>
-      ${tipoEntries.map(([tipo, cnt]) => {
-        const clr = tipo.toLowerCase().includes('top') ? '#059669' : tipo.toLowerCase().includes('regular') ? '#0284c7' : tipo.toLowerCase().includes('low') ? '#d97706' : tipo.toLowerCase().includes('inac') ? '#dc2626' : '#94a3b8';
-        const pct = Math.round(cnt/total*100);
-        return `<div class="bar-row">
-          <div class="bar-lbl w120">${tipo.slice(0,20)}</div>
-          <div class="bar-track"><div class="bar-fill ${pct<15?'short-bar':''}" style="width:${Math.max(pct,2)}%;background:${clr}"><span>${pct}% (${cnt})</span></div></div>
-        </div>`;
-      }).join('')}
-    </div>
-  </div>`;
+  el.innerHTML =
+    `<div class="ins-card full" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+        <div>
+          <div class="ins-card-title" style="font-size:20px;font-weight:800;">📊 Reporte de Adopción Gemini — Mallplaza</div>
+          <div class="ins-card-sub" style="margin-top:4px;">Análisis narrativo generado automáticamente · ${total} colaboradores evaluados</div>
+        </div>
+        <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;background:${tone}20;color:${tone};border:1px solid ${tone}40">Adopción global: ${pctActive}% — nivel ${lvl}</span>
+      </div>
+
+      <div style="font-size:14px;color:var(--text);line-height:1.75;">
+
+        <p>De un total de <strong>${total} colaboradores</strong> invitados a la plataforma Gemini, <strong>${active} están activos</strong> (${pctActive}%), mientras que <strong>${inactive} (${Math.round(inactive/total*100)}%) no registran ninguna interacción</strong>. ${pctActive < 50 ? 'Esto exige acciones de activación urgentes.' : pctActive >= 70 ? 'La tracción del programa es sólida.' : 'Hay un espacio significativo de mejora.'}
+        En total se han generado <strong>${Math.round(totalHrs).toLocaleString()} horas ahorradas estimadas</strong>, con un promedio de <strong>${avgHrs} hrs por colaborador activo</strong> y <strong>${avgInt} interacciones promedio</strong> entre quienes usan la herramienta.</p>
+
+        ${pctActive < 50
+          ? box('#fef2f2','#fecaca','#7f1d1d','🚨','<strong>Riesgo de adopción:</strong> Más de la mitad de los colaboradores habilitados aún no ha interactuado con Gemini. Sin intervención, el retorno de inversión del programa se compromete.')
+          : pctActive >= 70
+            ? box('#f0fdf4','#bbf7d0','#14532d','✅','<strong>Programa saludable:</strong> La adopción supera el 70%. El foco debe estar en profundizar el uso y convertir Low Users en regulares.')
+            : box('#fffbeb','#fde68a','#78350f','⚠️','<strong>Adopción moderada:</strong> La mitad del equipo ya usa Gemini, pero la inercia del no-uso puede consolidarse si no se actúa.')}
+
+        ${h3(1,'📍','¿Dónde está concentrado el uso?')}
+        <p><strong>${best.name}</strong> lidera la adopción con un <strong>${best.pct}%</strong> (${best.active}/${best.total} activos). En el extremo opuesto, <strong>${worst.name}</strong> registra apenas un <strong>${worst.pct}%</strong> (${worst.active}/${worst.total}), una brecha de <strong>${gapMgmt} puntos</strong> entre ambas.</p>
+        ${gapMgmt >= 35
+          ? box('#eff6ff','#bfdbfe','#1e40af','💡','<strong>Brecha estructural:</strong> Una diferencia de ' + gapMgmt + ' puntos sugiere que la adopción está determinada por factores locales — liderazgo, tipo de tareas, cultura interna. <strong>Acción:</strong> Organizar un benchmarking entre <em>' + best.name + '</em> y <em>' + worst.name + '</em> para identificar y replicar las prácticas del equipo líder.')
+          : box('#f0fdf4','#bbf7d0','#14532d','✅','La dispersión entre gerencias (' + gapMgmt + ' puntos) es manejable. Foco en activar a los inactivos dentro de cada unidad.')}
+
+        ${h3(2,'👥','El factor jerárquico')}
+        <p>La familia de cargo con mayor adopción es <strong>${bestFam.name}</strong> (${bestFam.pct}%), mientras que <strong>${worstFam.name}</strong> cierra la tabla con solo un <strong>${worstFam.pct}%</strong>. Esto implica una brecha jerárquica interna de <strong>${famGap} puntos</strong>.</p>
+        ${famGap >= 30
+          ? box('#fffbeb','#fde68a','#78350f','📌','<strong>Cortocircuito en cascada:</strong> Los mandos superiores usan Gemini, pero el nivel operativo no tiene suficiente tracción. <strong>Propuesta:</strong> Dotar a los líderes de <em>' + worstFam.name + '</em> de un banco de prompts concretos para sus tareas diarias — no como iniciativa adicional, sino integrada a su flujo real.')
+          : box('#eff6ff','#bfdbfe','#1e40af','��','La adopción es relativamente equilibrada entre niveles jerárquicos. Profundizar el uso allí donde ya hay masa crítica.')}
+
+        ${paises.length > 1 ? h3(3,'🌎','Perspectiva geográfica') + '<p><strong>' + bestPais.name + '</strong> encabeza la adopción con un <strong>' + bestPais.pct + '%</strong> (' + bestPais.active + '/' + bestPais.total + '), mientras que <strong>' + worstPais.name + '</strong> registra el menor porcentaje con un <strong>' + worstPais.pct + '%</strong>.' + (bestPais.pct - worstPais.pct >= 20 ? ' Esta brecha de <strong>' + (bestPais.pct - worstPais.pct) + ' puntos</strong> merece atención específica.</p>' + box('#eff6ff','#bfdbfe','#1e40af','🌐','<strong>Oportunidad de réplica:</strong> Documentar el modelo de adopción de <strong>' + bestPais.name + '</strong> (¿qué campañas se hicieron?, ¿quiénes son sus champions?, ¿qué prompts usan?) y exportarlo como playbook a <strong>' + worstPais.name + '</strong>.') : '</p>') : ''}
+
+        ${h3(paises.length > 1 ? 4 : 3,'⚡','Profundidad de uso y valor generado')}
+        <p><strong>${topCount} colaboradores (${Math.round(topCount/total*100)}%)</strong> son Top Users con más de 300 interacciones — el núcleo duro que sostiene el programa. Sin embargo, <strong>${lowCount} (${Math.round(lowCount/total*100)}%)</strong> son usuarios de baja frecuencia (1-49), lo que indica que llegaron a la plataforma pero no lograron incorporarla a su rutina. La gerencia corporativa que más valor ha generado es <strong>${bestCorpHrs[0]}</strong> con <strong>${Math.round(bestCorpHrs[1]).toLocaleString()} hrs</strong> ahorradas.</p>
+        ${lowCount >= 15 ? box('#fffbeb','#fde68a','#78350f','🎯','<strong>' + lowCount + ' usuarios "dormidos activos"</strong> representan oportunidad capturada a medias. <strong>Propuesta:</strong> Campaña de re-enganche con 3 correos personalizados con prompts de alto impacto para su función. Meta: llevarlos de 1-49 a +50 interacciones en 45 días.') : box('#f0fdf4','#bbf7d0','#14532d','🏅','La proporción de Low Users es acotada. El foco puede estar en elevar a los usuarios regulares hacia el perfil Top.')}
+
+        ${h3(paises.length > 1 ? 5 : 4,'🚀','Propuestas de acción prioritarias')}
+        <ol style="margin:12px 0 0 20px;display:flex;flex-direction:column;gap:14px;">
+          ${pctActive < 60 ? '<li><strong>Campaña de activación masiva</strong>' + badge('Prioridad 1','#991b1b','#fee2e2') + '<br><span style="color:var(--text-dim);font-size:13px;">Identificar los ' + inactive + ' usuarios inactivos y asignarlos a grupos focales con su gerencia. La activación individual supera en efectividad a los correos masivos. Medir en 30 días.</span></li>' : ''}
+          <li><strong>Benchmarking ${best.name} → ${worst.name}</strong>${badge('Prioridad 1','#991b1b','#fee2e2')}<br><span style="color:var(--text-dim);font-size:13px;">Documentar qué diferencia a la gerencia líder (${best.pct}%) de la más rezagada (${worst.pct}%) y construir un caso de estudio interno replicable.</span></li>
+          <li><strong>Banco de prompts para ${worstFam.name}</strong>${badge('Prioridad 2','#92400e','#fef3c7')}<br><span style="color:var(--text-dim);font-size:13px;">Diseñar al menos 10 prompts específicos para las tareas cotidianas de este nivel jerárquico. El 80% de la adopción surge cuando el usuario resuelve algo concreto de su trabajo con la herramienta.</span></li>
+          ${lowCount >= 15 ? '<li><strong>Re-enganche de ' + lowCount + ' Low Users</strong>' + badge('Prioridad 2','#92400e','#fef3c7') + '<br><span style="color:var(--text-dim);font-size:13px;">Secuencia de 3 mensajes personalizados con prompts de alto impacto. Meta: llevarlos a +50 interacciones en 45 días.</span></li>' : ''}
+          <li><strong>Red de Champions (${topCount} Top Users)</strong>${badge('Oportunidad','#064e3b','#d1fae5')}<br><span style="color:var(--text-dim);font-size:13px;">Son embajadores naturales. Crear un canal donde compartan sus mejores prompts semanalmente y reconocerlos públicamente en la organización acelera la adopción sin costo adicional.</span></li>
+          ${paises.length > 1 && bestPais.pct - worstPais.pct >= 20 ? '<li><strong>Playbook geográfico: ' + bestPais.name + ' → ' + worstPais.name + '</strong>' + badge('Oportunidad','#064e3b','#d1fae5') + '<br><span style="color:var(--text-dim);font-size:13px;">Entrevistar a los líderes de adopción de ' + bestPais.name + ' y exportar su metodología como playbook hacia ' + worstPais.name + '.</span></li>' : ''}
+        </ol>
+
+      </div>
+    </div>`;
 }
 
 // ─── MGMT TABLE ──────────────────────────────────────────────────────────────
