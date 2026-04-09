@@ -299,7 +299,7 @@
   <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr)">
     <div class="kpi-card green"><div class="kpi-icon">✅</div><div class="kpi-value green" id="kpiActive">—</div><div class="kpi-label">Usuarios Activos</div><div class="kpi-sub" id="kpiActivePct">Con interacciones &gt; 0</div></div>
     <div class="kpi-card red"><div class="kpi-icon">⚠️</div><div class="kpi-value red" id="kpiInactivos">—</div><div class="kpi-label">Usuarios Inactivos</div><div class="kpi-sub" id="kpiInactivosPct">Sin interacciones</div></div>
-    <div class="kpi-card purple"><div class="kpi-icon">⏱️</div><div class="kpi-value purple" id="kpiHoras">—</div><div class="kpi-label">Horas Ahorradas</div><div class="kpi-sub">Estimadas</div></div>
+    <div class="kpi-card purple"><div class="kpi-icon">⏱️</div><div class="kpi-value purple" id="kpiHoras">—</div><div class="kpi-label">Horas Ahorradas</div><div class="kpi-sub" id="kpiHorasSub">Estimadas</div></div>
   </div>
 
   <!-- CHARTS ROW 1 -->
@@ -388,16 +388,15 @@
         <thead>
           <tr>
             <th class="sortable" onclick="sortTable('Nombre Completo')">Nombre ↕</th>
-            <th class="sortable" onclick="sortTable('Correo')">Correo ↕</th>
+            <th>Perfil Uso</th>
+            <th class="sortable" onclick="sortTable('total_interacciones')">Interacciones ↕</th>
+            <th class="sortable" onclick="sortTable('tipo_de_usuario')">Tipo Usuario ↕</th>
+            <th class="sortable" onclick="sortTable('total_horas_ahorradas')">Hrs Ahorradas ↕</th>
             <th>País</th>
             <th>Ger. Corporativa</th>
             <th>Ger. Principal</th>
             <th class="sortable" onclick="sortTable('Familia de Cargo')">Familia Cargo ↕</th>
             <th>Generación</th>
-            <th>Perfil Uso</th>
-            <th class="sortable" onclick="sortTable('total_interacciones')">Interacciones ↕</th>
-            <th class="sortable" onclick="sortTable('tipo_de_usuario')">Tipo Usuario ↕</th>
-            <th class="sortable" onclick="sortTable('total_horas_ahorradas')">Hrs Ahorradas ↕</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -771,6 +770,8 @@ function updateKPIs(data) {
   document.getElementById('kpiHoras').textContent     = Math.round(totalHorasDet).toLocaleString() + ' hrs';
   document.getElementById('kpiActivePct').textContent = total ? `${Math.round(active/total*100)}% del total` : '—';
   document.getElementById('kpiInactivosPct').textContent = total ? `${Math.round(inactivos/total*100)}% del total` : '—';
+  const avgHoras = active > 0 ? (totalHorasDet / active).toFixed(1) : 0;
+  document.getElementById('kpiHorasSub').textContent = `Promedio p/colaborador: ${avgHoras} hrs`;
 }
 
 // Helper para calcular Activos vs Total para los graficos
@@ -1011,20 +1012,21 @@ function makeTreemap(id, dataArr) {
         borderWidth: 0,
         backgroundColor: (ctx2) => {
           if (ctx2.type !== 'data' || !dataArr[0]) return 'transparent';
-          const maxVal = dataArr[0].value; 
-          const alpha = 0.55 + 0.45 * (ctx2.raw.v / maxVal);
-          return `rgba(2, 132, 199, ${alpha})`;
+          return PALETTE[ctx2.dataIndex % PALETTE.length];
         },
         labels: {
-          display: true,
+          display: (ctx2) => {
+             if (ctx2.type !== 'data' || !dataArr[0]) return false;
+             return (ctx2.raw.v / dataArr[0].value) > 0.05; // Oculta etiqueta si área es chica
+          },
           color: '#ffffff',
-          font: { weight: 'bold', size: 10 },
+          font: { weight: 'bold', size: 9 },
           formatter: (ctx2) => {
              let words = ctx2.raw.g.split(' ');
              let lines = [];
              let currentLine = '';
              for(let word of words) {
-                 if ((currentLine + word).length > 24) {
+                 if ((currentLine + word).length > 14) {
                      if (currentLine) lines.push(currentLine.trim());
                      currentLine = word + ' ';
                  } else {
@@ -1163,7 +1165,7 @@ function renderTable(data) {
   document.getElementById('tableCount').textContent = `${data.length} registros`;
 
   if (data.length === 0 && allData.length > 0) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-muted)">Sin resultados para los filtros aplicados</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted)">Sin resultados para los filtros aplicados</td></tr>`;
     document.getElementById('paginationInfo').textContent = '';
     document.getElementById('pageBtns').innerHTML = '';
     return;
@@ -1174,16 +1176,15 @@ function renderTable(data) {
     
     return `<tr>
       <td>${r['Nombre Completo'] || '—'}</td>
-      <td style="font-size:12px;color:var(--text-muted)">${r['Correo'] || '—'}</td>
+      <td>${r['perfil_uso_complejidad'] || '—'}</td>
+      <td style="font-weight:600;color:var(--accent1)">${r['total_interacciones'] || 0}</td>
+      <td>${r['tipo_de_usuario'] || '—'}</td>
+      <td style="font-weight:600;color:var(--accent2)">${r['total_horas_ahorradas'] || 0}</td>
       <td>${flag} ${r['Pais'] || '—'}</td>
       <td style="font-size:12px">${(r['Gerencia Corporativa'] || '—').replace('Gerencia Corporativa ','Ger. Corp. ').slice(0,30)}</td>
       <td>${(r['Gerencia Principal'] || '—').replace('Gerencia ','Ger. ').slice(0,30)}</td>
       <td style="font-size:12px">${(r['Familia de Cargo'] || '—').slice(0,25)}</td>
       <td>${r['Generacion'] || '—'}</td>
-      <td>${r['perfil_uso_complejidad'] || '—'}</td>
-      <td style="font-weight:600;color:var(--accent1)">${r['total_interacciones'] || 0}</td>
-      <td>${r['tipo_de_usuario'] || '—'}</td>
-      <td style="font-weight:600;color:var(--accent2)">${r['total_horas_ahorradas'] || 0}</td>
     </tr>`;
   }).join('');
 
