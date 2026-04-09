@@ -474,9 +474,55 @@
     </div>
   </div>
 
-  <div class="ins-section">Insights accionables</div>
-  <div class="insights-list" id="insActionList">
-    <!-- Generado dinámicamente -->
+  <div class="ins-section">Resumen por Gerencia</div>
+  <!-- Tab toggles -->
+  <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;overflow:hidden;width:fit-content;margin-bottom:16px;">
+    <button class="chart-tab-btn active" id="mgmtTabBtn-corp" onclick="switchMgmtTab('corp',this)">Ger. Corporativa</button>
+    <button class="chart-tab-btn" id="mgmtTabBtn-prin" onclick="switchMgmtTab('prin',this)">Ger. Principal</button>
+    <button class="chart-tab-btn" id="mgmtTabBtn-n3" onclick="switchMgmtTab('n3',this)">Subgerencia N3</button>
+  </div>
+  <!-- Tables per level -->
+  <div id="mgmtTableWrap-corp" class="table-card" style="padding:0;margin-bottom:28px;">
+    <div class="table-wrapper">
+      <table class="data-table" id="mgmtTable-corp"><thead><tr>
+        <th>Gerencia Corporativa</th>
+        <th class="sortable" onclick="sortMgmtTable('corp','total')">Total ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('corp','activos')">Activos ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('corp','inactivos')">Inactivos ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('corp','pct')">% Adopción ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('corp','interacciones')">Interacciones ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('corp','horas')">Hrs Ahorradas ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('corp','avgHoras')">Prom. Hrs/Colaborador ↕</th>
+      </tr></thead><tbody id="mgmtBody-corp"></tbody></table>
+    </div>
+  </div>
+  <div id="mgmtTableWrap-prin" class="table-card" style="padding:0;margin-bottom:28px;display:none;">
+    <div class="table-wrapper">
+      <table class="data-table" id="mgmtTable-prin"><thead><tr>
+        <th>Gerencia Principal</th>
+        <th class="sortable" onclick="sortMgmtTable('prin','total')">Total ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('prin','activos')">Activos ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('prin','inactivos')">Inactivos ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('prin','pct')">% Adopción ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('prin','interacciones')">Interacciones ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('prin','horas')">Hrs Ahorradas ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('prin','avgHoras')">Prom. Hrs/Colaborador ↕</th>
+      </tr></thead><tbody id="mgmtBody-prin"></tbody></table>
+    </div>
+  </div>
+  <div id="mgmtTableWrap-n3" class="table-card" style="padding:0;margin-bottom:28px;display:none;">
+    <div class="table-wrapper">
+      <table class="data-table" id="mgmtTable-n3"><thead><tr>
+        <th>Subgerencia N3</th>
+        <th class="sortable" onclick="sortMgmtTable('n3','total')">Total ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('n3','activos')">Activos ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('n3','inactivos')">Inactivos ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('n3','pct')">% Adopción ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('n3','interacciones')">Interacciones ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('n3','horas')">Hrs Ahorradas ↕</th>
+        <th class="sortable" onclick="sortMgmtTable('n3','avgHoras')">Prom. Hrs/Colaborador ↕</th>
+      </tr></thead><tbody id="mgmtBody-n3"></tbody></table>
+    </div>
   </div>
 </div>
 </div><!-- end tab-insights -->
@@ -1215,6 +1261,7 @@ function renderTable(data) {
 function updateInsights(data) {
   if (!data || data.length === 0) return;
   const total = data.length;
+  buildMgmtData(data);
 
   const active  = data.filter(r => r.total_interacciones > 0).length;
   const inactive = data.filter(r => r.total_interacciones === 0).length;
@@ -1386,6 +1433,75 @@ function switchTab(tab, btn) {
   document.getElementById('tab-'+tab).classList.add('active');
   btn.classList.add('active');
   if (tab === 'dashboard') setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),50);
+}
+
+// ─── MGMT TABLE ──────────────────────────────────────────────────────────────
+const mgmtSortState = { corp: { key: 'total', asc: false }, prin: { key: 'total', asc: false }, n3: { key: 'total', asc: false } };
+let mgmtData = { corp: [], prin: [], n3: [] };
+
+function buildMgmtData(data) {
+  const levels = [
+    { id: 'corp', field: 'Gerencia Corporativa' },
+    { id: 'prin', field: 'Gerencia Principal' },
+    { id: 'n3',   field: 'Gerencia /subgerencia N3' }
+  ];
+  levels.forEach(({ id, field }) => {
+    const map = {};
+    data.forEach(r => {
+      const key = r[field] || 'Sin datos';
+      if (!map[key]) map[key] = { name: key, total: 0, activos: 0, inactivos: 0, interacciones: 0, horas: 0 };
+      map[key].total++;
+      if (r.total_interacciones > 0) map[key].activos++; else map[key].inactivos++;
+      map[key].interacciones += r.total_interacciones || 0;
+      map[key].horas += r.total_horas_ahorradas || 0;
+    });
+    mgmtData[id] = Object.values(map).map(g => ({
+      ...g,
+      horas: Math.round(g.horas * 10) / 10,
+      pct: g.total > 0 ? Math.round(g.activos / g.total * 100) : 0,
+      avgHoras: g.activos > 0 ? Math.round(g.horas / g.activos * 10) / 10 : 0
+    }));
+    renderMgmtTable(id);
+  });
+}
+
+function renderMgmtTable(id) {
+  const { key, asc } = mgmtSortState[id];
+  const rows = [...mgmtData[id]].sort((a, b) => {
+    const va = a[key], vb = b[key];
+    if (typeof va === 'number') return asc ? va - vb : vb - va;
+    return asc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+  const tbody = document.getElementById('mgmtBody-' + id);
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(g => {
+    const pctColor = g.pct >= 70 ? 'var(--accent2)' : g.pct >= 40 ? 'var(--accent3)' : 'var(--accent-red)';
+    return `<tr>
+      <td style="font-weight:500">${g.name}</td>
+      <td>${g.total}</td>
+      <td style="color:var(--accent2);font-weight:600">${g.activos}</td>
+      <td style="color:var(--accent-red);font-weight:600">${g.inactivos}</td>
+      <td><span style="font-weight:700;color:${pctColor}">${g.pct}%</span></td>
+      <td style="color:var(--accent1);font-weight:600">${g.interacciones.toLocaleString()}</td>
+      <td style="font-weight:600">${g.horas.toLocaleString()} hrs</td>
+      <td style="color:var(--accent4);font-weight:600">${g.avgHoras} hrs</td>
+    </tr>`;
+  }).join('');
+}
+
+function sortMgmtTable(id, key) {
+  if (mgmtSortState[id].key === key) mgmtSortState[id].asc = !mgmtSortState[id].asc;
+  else { mgmtSortState[id].key = key; mgmtSortState[id].asc = false; }
+  renderMgmtTable(id);
+}
+
+function switchMgmtTab(id, btn) {
+  ['corp','prin','n3'].forEach(t => {
+    document.getElementById('mgmtTableWrap-' + t).style.display = (t === id) ? 'block' : 'none';
+    const b = document.getElementById('mgmtTabBtn-' + t);
+    if (b) b.classList.remove('active');
+  });
+  btn.classList.add('active');
 }
 </script>
 
