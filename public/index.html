@@ -529,54 +529,8 @@
 
 <!-- TAB: REPORT -->
 <div id="tab-report" class="tab-pane">
-  <div class="insights-main">
-    <div class="ins-card full">
-      <div class="ins-card-title" style="font-size:20px; font-weight:800; margin-bottom:12px;">📊 Análisis de Correlaciones y Oportunidades</div>
-      <div style="font-size:14px; color:var(--text); line-height:1.6;">
-        <p>Tras cruzar las dimensiones de <strong>Antigüedad</strong>, <strong>Familia de Cargo</strong> y la <strong>Gerencia</strong> más problemática, se descubrieron correlaciones sumamente interesantes que desmitifican algunos números generales.</p>
-        
-        <div class="alert-box" style="background:#e0f2fe; border-color:#bae6fd; margin: 20px 0;">
-          <div class="alert-icon">💡</div>
-          <div class="alert-text" style="color:#0369a1; font-size:14px;"><strong>El gran descubrimiento:</strong> La adopción de Gemini está profundamente marcada por la jerarquía (a mayor cargo, mayor uso) y por el tiempo en la empresa (a menor antigüedad, más experimentación con IA).</div>
-        </div>
-
-        <h3 style="margin-top:32px; font-size:16px;">1. La Curva de la Antigüedad (Generación de Talento)</h3>
-        <p>Existe una correlación directa y predecible entre los "años de servicio" de un colaborador y su propensión a interactuar con la plataforma.</p>
-        <ul style="margin:12px 0 24px 24px;">
-          <li><strong>< 1 año en la empresa:</strong> <strong>72%</strong> de adopción.</li>
-          <li><strong>1 a 3 años:</strong> <strong>62%</strong>.</li>
-          <li><strong>5 a 10 años:</strong> <strong>56%</strong>.</li>
-          <li><strong>> 10 años:</strong> <strong>50%</strong>.</li>
-        </ul>
-        <strong style="color:var(--accent1);">💡 Iniciativa propuesta:</strong>
-        <p style="margin-top:6px;">Las personas con más de 10 años en Mallplaza dominan los procesos actuales y la cultura corporativa, pero están adoptando Gemini más lento. Dado que el talento nuevo (<1 año) es veloz en utilizarlo, propongo lanzar un piloto de <strong>"Mentoría Inversa en IA"</strong>, donde los jóvenes actúen como "duplas" de los colaboradores de mayor antigüedad para enseñarles prompts.</p>
-
-        <hr style="border:none; border-top:1px solid var(--border); margin:32px 0;">
-
-        <h3 style="font-size:16px;">2. El "Falso Problema" de Operaciones Regional</h3>
-        <p>La <strong>Gerencia Operaciones Regional</strong> figura como una de las de peor rendimiento absoluto (<strong>39%</strong>) a pesar de ser la más grande (262 personas).</p>
-        <p>Sin embargo, al hacer un cruce estadístico interno por <strong>Familia de Cargo</strong>, el panorama es el opuesto en los mandos altos:</p>
-        <ul style="margin:12px 0 24px 24px;">
-          <li><strong>Middle Management:</strong> 80% activos.</li>
-          <li><strong>Junior Management:</strong> 67% activos.</li>
-          <li><strong>Especialistas / Profesionales:</strong> Apenas 33% activos (Son 172 personas).</li>
-          <li><strong>Técnico / Administrativo:</strong> Menos del 13%.</li>
-        </ul>
-        <strong style="color:var(--accent1);">💡 Iniciativa propuesta:</strong>
-        <p style="margin-top:6px;">Los líderes de Operaciones Regional <em>sí</em> la usan. <strong>El problema es el cortocircuito en la adopción en cascada.</strong><br>Recomiendo incentivar a ese 80% del <em>Middle Management</em> para que <strong>subexpongan a sus especialistas a Gemini</strong> (exigiendo que borradores o resúmenes se generen en Gemini). Si el líder lo modela, la masa de Especialistas subirá su 33%.</p>
-
-        <hr style="border:none; border-top:1px solid var(--border); margin:32px 0;">
-
-        <h3 style="font-size:16px;">3. La brecha de los "Especialistas" Transversales</h3>
-        <p>A nivel general, los "Especialistas" deberían ser la gran fuerza intelectual de IA. Sin embargo, hay realidades distintas:</p>
-        <ul style="margin:12px 0 24px 24px;">
-          <li><strong>Esp. Profesional Digital:</strong> <strong>98%</strong> (Adopción casi perfecta).</li>
-          <li><strong>Esp. Profesional (Tradicional):</strong> <strong>53%</strong> (Brecha de 45 puntos).</li>
-        </ul>
-        <strong style="color:var(--accent1);">💡 Iniciativa propuesta:</strong>
-        <p style="margin-top:6px;">Dada la efectividad digital, propongo crear un <strong>Repositorio Colaborativo de Prompts Top</strong>, recogiendo qué hacen en sus prompts ese 98% digital para compartir ese método hacia el 53% tradicional.</p>
-      </div>
-    </div>
+  <div class="insights-main" id="reportContent">
+    <div style="text-align:center;padding:60px;color:var(--text-muted)">Cargando reporte…</div>
   </div>
 </div>
 <!-- end tab-report -->
@@ -1016,6 +970,7 @@ function makeRadar(id, labels, values) {
 function makeHorasBar(id, labels, values) {
   const ctx = document.getElementById(id);
   if (!ctx) return null;
+  const maxVal = Math.max(...values) || 1;
   return new Chart(ctx, {
     type: 'bar',
     data: {
@@ -1026,12 +981,17 @@ function makeHorasBar(id, labels, values) {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { right: 70 } },
       plugins: {
         legend: { display: false },
         datalabels: {
-          color: '#fff', font: { weight: 'bold', size: 10 },
           display: ctx2 => ctx2.dataset.data[ctx2.dataIndex] > 0,
-          formatter: v => v.toLocaleString() + ' hrs'
+          formatter: v => v.toLocaleString() + ' hrs',
+          anchor: ctx2 => (ctx2.dataset.data[ctx2.dataIndex] / maxVal < 0.18) ? 'end' : 'center',
+          align:  ctx2 => (ctx2.dataset.data[ctx2.dataIndex] / maxVal < 0.18) ? 'right' : 'center',
+          color:  ctx2 => (ctx2.dataset.data[ctx2.dataIndex] / maxVal < 0.18) ? '#475569' : '#fff',
+          font: { weight: 'bold', size: 10 },
+          clamp: false
         },
         tooltip: { callbacks: { label: ctx2 => `${ctx2.dataset.data[ctx2.dataIndex].toLocaleString()} hrs` } }
       },
@@ -1433,6 +1393,131 @@ function switchTab(tab, btn) {
   document.getElementById('tab-'+tab).classList.add('active');
   btn.classList.add('active');
   if (tab === 'dashboard') setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),50);
+  if (tab === 'report' && filtered.length > 0) buildReport(filtered);
+  else if (tab === 'report' && allData.length > 0) buildReport(allData);
+}
+
+// ─── REPORTE DINÁMICO ────────────────────────────────────────────────────────
+function buildReport(data) {
+  const el = document.getElementById('reportContent');
+  if (!el || !data || data.length === 0) return;
+  const total   = data.length;
+  const active  = data.filter(r => r.total_interacciones > 0).length;
+  const inactive = total - active;
+  const pctActive = Math.round(active / total * 100);
+  const totalHrs = data.reduce((s, r) => s + (r.total_horas_ahorradas || 0), 0);
+  const totalInt = data.reduce((s, r) => s + (r.total_interacciones || 0), 0);
+  const avgHrsPerActive = active > 0 ? (totalHrs / active).toFixed(1) : 0;
+
+  // Gerencias Principales
+  const mgmtMap = {};
+  data.forEach(r => {
+    const g = r['Gerencia Principal'] || 'Sin datos';
+    if (!mgmtMap[g]) mgmtMap[g] = { total: 0, active: 0 };
+    mgmtMap[g].total++;
+    if (r.total_interacciones > 0) mgmtMap[g].active++;
+  });
+  const mgmts = Object.entries(mgmtMap)
+    .filter(([k, v]) => k !== 'Sin datos' && v.total >= 3)
+    .map(([name, v]) => ({ name, ...v, pct: Math.round(v.active / v.total * 100) }))
+    .sort((a, b) => b.pct - a.pct);
+  const top3Mgmt   = mgmts.slice(0, 3);
+  const worst3Mgmt = [...mgmts].sort((a, b) => a.pct - b.pct).slice(0, 3);
+
+  // Familias de cargo
+  const famMap = {};
+  data.forEach(r => {
+    const f = r['Familia de Cargo'] || 'Sin datos';
+    if (!famMap[f]) famMap[f] = { total: 0, active: 0 };
+    famMap[f].total++;
+    if (r.total_interacciones > 0) famMap[f].active++;
+  });
+  const fams = Object.entries(famMap)
+    .filter(([k]) => k !== 'Sin datos')
+    .map(([name, v]) => ({ name, ...v, pct: Math.round(v.active / v.total * 100) }))
+    .sort((a, b) => b.pct - a.pct);
+
+  // Por país
+  const paisMap = {};
+  data.forEach(r => {
+    const p = r['Pais'] || 'Sin datos';
+    if (!paisMap[p]) paisMap[p] = { total: 0, active: 0 };
+    paisMap[p].total++;
+    if (r.total_interacciones > 0) paisMap[p].active++;
+  });
+  const paises = Object.entries(paisMap)
+    .filter(([k]) => k !== 'Sin datos')
+    .map(([name, v]) => ({ name, ...v, pct: Math.round(v.active / v.total * 100) }))
+    .sort((a, b) => b.pct - a.pct);
+
+  // Tipo de usuario
+  const tipoMap = {};
+  data.forEach(r => { const t = r['tipo_de_usuario'] || 'Sin datos'; tipoMap[t] = (tipoMap[t]||0)+1; });
+  const tipoEntries = Object.entries(tipoMap).sort((a,b)=>b[1]-a[1]);
+
+  const barColor = pct => pct >= 70 ? '#059669' : pct >= 40 ? '#d97706' : '#dc2626';
+
+  el.innerHTML = `
+  <div class="ins-kpi-row" style="margin-bottom:24px;">
+    <div class="ins-kpi"><div class="val green">${active}</div><div class="lbl">Usuarios activos</div><div class="sub">${pctActive}% del total (${total} invitados)</div></div>
+    <div class="ins-kpi"><div class="val red">${inactive}</div><div class="lbl">Usuarios inactivos</div><div class="sub">${Math.round(inactive/total*100)}% sin ninguna interacción</div></div>
+    <div class="ins-kpi"><div class="val purple">${Math.round(totalHrs).toLocaleString()} hrs</div><div class="lbl">Horas ahorradas</div><div class="sub">Prom. ${avgHrsPerActive} hrs por colaborador activo</div></div>
+    <div class="ins-kpi"><div class="val blue">${totalInt.toLocaleString()}</div><div class="lbl">Interacciones totales</div><div class="sub">Promedio ${active>0?Math.round(totalInt/active):0} por usuario activo</div></div>
+  </div>
+
+  <div class="ins-charts-row" style="margin-bottom:24px;">
+    <div class="ins-card">
+      <div class="ins-card-title">🏆 Top Gerencias por Adopción</div>
+      <div class="ins-card-sub">Gerencias principales con mayor % de usuarios activos (≥3 usuarios)</div>
+      ${top3Mgmt.map(g => `
+        <div class="bar-row">
+          <div class="bar-lbl w160" title="${g.name}">${g.name.replace('Gerencia ','Ger. ').slice(0,26)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${g.pct}%;background:#059669"><span>${g.pct}% — ${g.active}/${g.total}</span></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="ins-card">
+      <div class="ins-card-title">⚠️ Gerencias con Menor Adopción</div>
+      <div class="ins-card-sub">Requieren atención y plan de activación</div>
+      ${worst3Mgmt.map(g => `
+        <div class="bar-row">
+          <div class="bar-lbl w160" title="${g.name}">${g.name.replace('Gerencia ','Ger. ').slice(0,26)}</div>
+          <div class="bar-track"><div class="bar-fill ${g.pct<20?'short-bar':''}" style="width:${Math.max(g.pct,3)}%;background:#dc2626"><span>${g.pct}% — ${g.active}/${g.total}</span></div></div>
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="ins-charts-row" style="margin-bottom:28px;">
+    <div class="ins-card">
+      <div class="ins-card-title">👤 Adopción por Familia de Cargo</div>
+      <div class="ins-card-sub">% de usuarios activos por nivel jerárquico</div>
+      ${fams.map(f => {
+        const clr = barColor(f.pct); const short = f.pct < 20;
+        return `<div class="bar-row">
+          <div class="bar-lbl w160">${f.name.slice(0,26)}</div>
+          <div class="bar-track"><div class="bar-fill ${short?'short-bar':''}" style="width:${Math.max(f.pct,2)}%;background:${clr}"><span>${f.pct}% — ${f.active}/${f.total}</span></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="ins-card">
+      <div class="ins-card-title">🌎 Adopción por País</div>
+      <div class="ins-card-sub">% de usuarios activos sobre total por país</div>
+      ${paises.map(p => `
+        <div class="bar-row">
+          <div class="bar-lbl w100">${p.name}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${p.pct}%;background:${barColor(p.pct)}"><span>${p.pct}% — ${p.active}/${p.total}</span></div></div>
+        </div>`).join('')}
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 12px">
+      <div class="ins-card-title" style="margin-bottom:8px;">🔖 Distribución por Tipo de Usuario</div>
+      ${tipoEntries.map(([tipo, cnt]) => {
+        const clr = tipo.toLowerCase().includes('top') ? '#059669' : tipo.toLowerCase().includes('regular') ? '#0284c7' : tipo.toLowerCase().includes('low') ? '#d97706' : tipo.toLowerCase().includes('inac') ? '#dc2626' : '#94a3b8';
+        const pct = Math.round(cnt/total*100);
+        return `<div class="bar-row">
+          <div class="bar-lbl w120">${tipo.slice(0,20)}</div>
+          <div class="bar-track"><div class="bar-fill ${pct<15?'short-bar':''}" style="width:${Math.max(pct,2)}%;background:${clr}"><span>${pct}% (${cnt})</span></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
 }
 
 // ─── MGMT TABLE ──────────────────────────────────────────────────────────────
